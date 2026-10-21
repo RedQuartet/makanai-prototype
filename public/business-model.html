@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MAKANAI ビジネスモデル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  /* Layout: one centered column. The wide pict diagram comes first, then the exchange check, then the 9-block canvas. Colors follow the MAKANAI app. */
+  :root {
+    --bg: #fff9f0;
+    --surface: #ffffff;
+    --fg: #382b25;
+    --muted: #7d6a5f;
+    --line: #eadccd;
+    --line-strong: #cdb9a6;
+    --hub: #6b3828;
+    --on-hub: #fff9f0;
+    --value: #6b3828;
+    --money: #c4433a;
+    --money-soft: #fbe6e1;
+    --leaf: #ddebd8;
+    --leaf-fg: #2f5a33;
+    --font-display: 'DM Sans', 'Noto Sans JP', system-ui, sans-serif;
+    --font-body: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1613; --surface: #271f1b; --fg: #f4e9de; --muted: #b8a496; --line: #3d312a; --line-strong: #5d4a3f;
+      --hub: #8c4a33; --on-hub: #fff4e8; --value: #f0d2b8; --money: #ff9488; --money-soft: #3f2420; --leaf: #24362a; --leaf-fg: #bfe0c2;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1613; --surface: #271f1b; --fg: #f4e9de; --muted: #b8a496; --line: #3d312a; --line-strong: #5d4a3f;
+    --hub: #8c4a33; --on-hub: #fff4e8; --value: #f0d2b8; --money: #ff9488; --money-soft: #3f2420; --leaf: #24362a; --leaf-fg: #bfe0c2;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.75; }
+  .page { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; display: grid; gap: 48px; }
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+
+  .top { display: grid; gap: 14px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--value); font: 700 17px/1 var(--font-display); letter-spacing: .14em; }
+  .mark { width: 34px; height: 34px; border-radius: 50% 50% 45% 55%; display: grid; place-items: center; background: var(--hub); transform: rotate(-5deg); }
+  .mark svg { width: 17px; height: 17px; transform: rotate(5deg); fill: none; stroke: var(--on-hub); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  h1 { font-size: clamp(26px, 4.2vw, 36px); line-height: 1.3; letter-spacing: -.01em; }
+  .lead { color: var(--muted); max-width: 62ch; }
+
+  .modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .mode { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+  .mode b { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 700 16px/1 var(--font-display); background: var(--leaf); color: var(--leaf-fg); }
+  .mode span { min-width: 0; }
+  .mode small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+  section { display: grid; gap: 18px; }
+  .sec-head { display: grid; gap: 4px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted); }
+  h2 { font-size: 22px; line-height: 1.4; }
+
+  figure { margin: 0; display: grid; gap: 14px; }
+  .scroll { overflow-x: auto; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); padding: 18px 12px; }
+  .dg { display: block; width: 100%; min-width: 860px; height: auto; }
+  .scroll-hint { display: none; font-size: 12.5px; color: var(--muted); }
+  @media (max-width: 900px) { .scroll-hint { display: block; } }
+  figcaption { color: var(--muted); font-size: 14px; max-width: 70ch; }
+
+  .dg text { font-family: var(--font-body); fill: var(--fg); }
+  .dg .role { fill: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .14em; }
+  .dg .box { fill: var(--bg); stroke: var(--line-strong); stroke-width: 1.5; }
+  .dg .cust { fill: var(--bg); stroke: var(--value); stroke-width: 2; }
+  .dg .name { font-size: 16px; font-weight: 700; }
+  .dg .sub { font-size: 12.5px; fill: var(--muted); }
+  .dg .hub { fill: var(--hub); }
+  .dg .hub-title { fill: var(--on-hub); font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: .1em; }
+  .dg .hub-sub { fill: var(--on-hub); font-size: 13.5px; font-weight: 500; }
+  .dg .hub-icon { fill: none; stroke: var(--on-hub); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .dg .icon { fill: none; stroke: var(--value); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .dg .v-line { stroke: var(--value); stroke-width: 2; fill: none; }
+  .dg .m-line { stroke: var(--money); stroke-width: 2; fill: none; }
+  .dg .d-line { stroke: var(--value); stroke-width: 2; stroke-dasharray: 7 6; fill: none; }
+  .dg .v-t { fill: var(--value); font-size: 14px; font-weight: 500; }
+  .dg .m-t { fill: var(--money); font-size: 14px; font-weight: 700; }
+  .dg .v-fill { fill: var(--value); }
+  .dg .m-fill { fill: var(--money); }
+  .dg .person { fill: var(--bg); stroke: var(--value); stroke-width: 3; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 13.5px; }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .legend svg { width: 36px; height: 10px; flex: none; }
+  .legend .lv { stroke: var(--value); stroke-width: 2.5; }
+  .legend .lm { stroke: var(--money); stroke-width: 2.5; }
+  .legend .ld { stroke: var(--value); stroke-width: 2.5; stroke-dasharray: 6 4; }
+
+  .yen { color: var(--money); font-weight: 700; }
+
+  .exchange { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .exchange th, .exchange td { text-align: left; vertical-align: top; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .exchange tr:last-child td { border-bottom: 0; }
+  .exchange thead th { font-size: 12px; letter-spacing: .12em; color: var(--muted); background: var(--bg); }
+  .exchange tbody th { font-size: 15px; white-space: nowrap; }
+  .exchange ul { margin: 0; padding-left: 1.1em; }
+  .exchange li + li { margin-top: 2px; }
+  .swap { width: 32px; text-align: center !important; color: var(--muted); font-size: 18px; }
+  @media (max-width: 640px) {
+    .exchange thead { display: none; }
+    .exchange tr { display: grid; grid-template-columns: 1fr; border-bottom: 1px solid var(--line); }
+    .exchange tr:last-child { border-bottom: 0; }
+    .exchange th, .exchange td { border-bottom: 0; padding: 10px 16px; }
+    .exchange tbody th { padding-top: 16px; }
+    .exchange td[data-label]::before { content: attr(data-label); display: block; font-size: 12px; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+    .swap { display: none; }
+  }
+
+  .bmc { display: grid; gap: 10px; grid-template-columns: repeat(10, minmax(0, 1fr));
+    grid-template-areas:
+      "kp kp ka ka vp vp cr cr cs cs"
+      "kp kp kr kr vp vp ch ch cs cs"
+      "co co co co co rs rs rs rs rs"; }
+  .blk { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; display: grid; align-content: start; gap: 8px; }
+  .blk h3 { font-size: 13.5px; line-height: 1.5; letter-spacing: .04em; color: var(--muted); }
+  .blk h3 b { color: var(--fg); }
+  .blk ul { margin: 0; padding-left: 1.05em; font-size: 14px; line-height: 1.65; }
+  .blk li + li { margin-top: 4px; }
+  .kp { grid-area: kp; } .ka { grid-area: ka; } .kr { grid-area: kr; } .vp { grid-area: vp; } .cr { grid-area: cr; }
+  .ch { grid-area: ch; } .cs { grid-area: cs; } .co { grid-area: co; } .rs { grid-area: rs; }
+  .vp { background: var(--leaf); border-color: transparent; }
+  .vp h3, .vp h3 b { color: var(--leaf-fg); }
+  .rs, .co { background: var(--money-soft); border-color: transparent; }
+  @media (max-width: 900px) {
+    .bmc { grid-template-columns: 1fr; grid-template-areas: "cs" "vp" "ch" "cr" "rs" "kr" "ka" "kp" "co"; }
+  }
+
+  .note { font-size: 13.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; max-width: 75ch; }
+  .note b { color: var(--fg); }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <div class="brand">
+      <span class="mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/></svg></span>
+      <span>MAKANAI</span>
+    </div>
+    <h1>MAKANAI のビジネスモデル</h1>
+    <p class="lead">お手伝いで繋がるまかないマッチングサービス。運営・店舗オーナー・消費者・パートナーの間で、お金と価値が誰から誰へ渡るかを、等価交換として図にしました。</p>
+  </header>
+
+  <div class="modes" aria-label="消費者の使い方">
+    <div class="mode"><b>A</b><span>お手伝いをして、まかないを無料で食べる<small>店舗は人手を得て、余る食材を使い切れる</small></span></div>
+    <div class="mode"><b>B</b><span>お手伝いなしで、安価なまかないを買う<small>捨てるはずの食材が、店舗の売上になる</small></span></div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="eyebrow">PICTOGRAM</span><h2>ピクト図解</h2></div>
+    <figure>
+      <p class="scroll-hint">図は横にスクロールできます。</p>
+      <div class="scroll">
+        <svg class="dg" viewBox="0 0 1090 676" role="img" aria-label="MAKANAI 運営が中央にいる。左の決済代行会社・クラウドベンダー・保険会社から決済機能・ITインフラ・保険を受け取り、それぞれに料金を払う。右上の店舗オーナーには掲載・マッチング・食材ロス管理の仕組みと売上を渡し、掲載料と手数料を受け取る。右下の消費者には検索・マッチング・決済代行を提供し、Bのときはまかない代金を受け取る。店舗オーナーと消費者の間では、お手伝いとまかないを直接やりとりする。">
+          <defs>
+            <marker id="ah-v" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path class="v-fill" d="M0 0L10 5L0 10z"/></marker>
+            <marker id="ah-m" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path class="m-fill" d="M0 0L10 5L0 10z"/></marker>
+          </defs>
+
+          <text class="role" x="119" y="34" text-anchor="middle">主要パートナー</text>
+          <text class="role" x="505" y="34" text-anchor="middle">提供主</text>
+          <text class="role" x="955" y="34" text-anchor="middle">主要顧客</text>
+
+          <!-- Partners -->
+          <rect class="box" x="24" y="70" width="190" height="104" rx="10"/>
+          <text class="name" x="119" y="118" text-anchor="middle">決済代行会社</text>
+          <text class="sub" x="119" y="141" text-anchor="middle">クレジットカード会社など</text>
+
+          <rect class="box" x="24" y="290" width="190" height="104" rx="10"/>
+          <text class="name" x="119" y="348" text-anchor="middle">クラウドベンダー</text>
+
+          <rect class="box" x="24" y="510" width="190" height="104" rx="10"/>
+          <text class="name" x="119" y="568" text-anchor="middle">保険会社</text>
+
+          <!-- Partner arrows: value in (top), money out (bottom) -->
+          <line class="v-line" x1="226" y1="108" x2="418" y2="108" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="322" y="97" text-anchor="middle">決済機能</text>
+          <line class="m-line" x1="418" y1="136" x2="226" y2="136" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="322" y="160" text-anchor="middle">¥ 決済手数料</text>
+
+          <line class="v-line" x1="226" y1="328" x2="418" y2="328" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="322" y="317" text-anchor="middle">IT インフラ</text>
+          <line class="m-line" x1="418" y1="356" x2="226" y2="356" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="322" y="380" text-anchor="middle">¥ 運用費</text>
+
+          <line class="v-line" x1="226" y1="548" x2="418" y2="548" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="322" y="537" text-anchor="middle">お手伝い中の保険</text>
+          <line class="m-line" x1="418" y1="576" x2="226" y2="576" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="322" y="600" text-anchor="middle">¥ 保険料</text>
+
+          <!-- Hub -->
+          <rect class="hub" x="430" y="56" width="150" height="600" rx="16"/>
+          <g class="hub-icon" transform="translate(487 282) scale(1.5)"><path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/></g>
+          <text class="hub-title" x="505" y="352" text-anchor="middle">MAKANAI</text>
+          <text class="hub-sub" x="505" y="382" text-anchor="middle">まかない</text>
+          <text class="hub-sub" x="505" y="402" text-anchor="middle">マッチングサービス</text>
+
+          <!-- Store owner -->
+          <rect class="cust" x="850" y="70" width="210" height="150" rx="10"/>
+          <g class="icon" transform="translate(943 98)"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"/><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"/></g>
+          <text class="name" x="955" y="152" text-anchor="middle">店舗オーナー</text>
+          <text class="sub" x="955" y="175" text-anchor="middle">個人経営の飲食店</text>
+
+          <!-- Hub <-> store owner -->
+          <line class="v-line" x1="592" y1="100" x2="838" y2="100" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="715" y="89" text-anchor="middle">掲載・マッチング・食材ロス管理</text>
+          <line class="m-line" x1="592" y1="146" x2="838" y2="146" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="715" y="135" text-anchor="middle">¥ 売上（B の代金 − 手数料）</text>
+          <line class="m-line" x1="838" y1="192" x2="592" y2="192" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="715" y="216" text-anchor="middle">¥ 掲載料 + ¥ 手数料</text>
+
+          <!-- Consumer -->
+          <circle class="person" cx="955" cy="481" r="19"/>
+          <path class="person" d="M923 566v-16a32 32 0 0 1 64 0v16z"/>
+          <text class="name" x="955" y="596" text-anchor="middle">消費者</text>
+          <text class="sub" x="955" y="617" text-anchor="middle">学生・一人暮らし</text>
+
+          <!-- Hub <-> consumer -->
+          <line class="v-line" x1="592" y1="500" x2="905" y2="500" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="748" y="489" text-anchor="middle">まかないの検索・マッチング・決済代行</text>
+          <line class="m-line" x1="905" y1="548" x2="592" y2="548" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="748" y="572" text-anchor="middle">¥ まかない代金（B のとき・安価）</text>
+
+          <!-- Direct exchange between store owner and consumer -->
+          <line class="d-line" x1="915" y1="232" x2="915" y2="452" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="903" y="338" text-anchor="end">まかないの提供</text>
+          <text class="sub" x="903" y="357" text-anchor="end">A・B どちらも</text>
+          <line class="d-line" x1="995" y1="452" x2="995" y2="232" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="1007" y="338">お手伝い</text>
+          <text class="sub" x="1007" y="357">A のとき</text>
+        </svg>
+      </div>
+      <div class="legend" aria-label="凡例">
+        <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="lv" x1="0" y1="5" x2="36" y2="5"/></svg>価値（仕組み・料理・労力）</span>
+        <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="lm" x1="0" y1="5" x2="36" y2="5"/></svg><span class="yen">¥</span>&nbsp;金銭</span>
+        <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="ld" x1="0" y1="5" x2="36" y2="5"/></svg>店舗と消費者の直接のやりとり</span>
+      </div>
+      <figcaption>お金は店舗オーナーから MAKANAI に入り、パートナーへの支払いに回ります。消費者からは手数料を取りません。消費者の課題「お金をかけずに」に合わせるためです。</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="eyebrow">EQUAL EXCHANGE</span><h2>等価交換になっているか</h2></div>
+    <table class="exchange">
+      <thead><tr><th scope="col">立場</th><th scope="col">渡すもの</th><th class="swap" scope="col" aria-hidden="true"></th><th scope="col">受け取るもの</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">店舗オーナー</th>
+          <td data-label="渡すもの"><ul><li><span class="yen">¥</span> 掲載料・手数料</li><li>まかない</li></ul></td>
+          <td class="swap" aria-hidden="true">⇄</td>
+          <td data-label="受け取るもの"><ul><li>お手伝い（人手）</li><li>新しいお客さん</li><li><span class="yen">¥</span> 余る食材の売上</li></ul></td>
+        </tr>
+        <tr>
+          <th scope="row">消費者</th>
+          <td data-label="渡すもの"><ul><li>お手伝い（A）</li><li><span class="yen">¥</span> 安いまかない代金（B）</li></ul></td>
+          <td class="swap" aria-hidden="true">⇄</td>
+          <td data-label="受け取るもの"><ul><li>おいしいまかない</li><li>近所のお店との出会い</li></ul></td>
+        </tr>
+        <tr>
+          <th scope="row">MAKANAI 運営</th>
+          <td data-label="渡すもの"><ul><li>掲載・マッチングの仕組み</li><li><span class="yen">¥</span> 店舗への売上の受け渡し</li><li><span class="yen">¥</span> パートナーへの支払い</li></ul></td>
+          <td class="swap" aria-hidden="true">⇄</td>
+          <td data-label="受け取るもの"><ul><li><span class="yen">¥</span> 掲載料・手数料</li><li>決済・IT インフラ・保険</li></ul></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="eyebrow">BUSINESS MODEL CANVAS</span><h2>ビジネスモデルキャンバス</h2></div>
+    <div class="bmc">
+      <div class="blk kp"><h3>⑧ <b>主要パートナー</b></h3><ul><li>決済代行会社</li><li>クラウドベンダー</li><li>保険会社（お手伝い中のケガ・事故）</li></ul></div>
+      <div class="blk ka"><h3>⑦ <b>主要活動</b></h3><ul><li>アプリの開発・運用</li><li>店舗の開拓、利用者の集客</li><li>期限登録 → まかない化 → 募集の仕組みづくり</li><li>本人確認・保険などの安全対策</li></ul></div>
+      <div class="blk kr"><h3>⑥ <b>主要リソース</b></h3><ul><li>マッチングアプリ</li><li>加盟店舗のネットワーク</li><li>好みとエリアごとの需要データ</li></ul></div>
+      <div class="blk vp"><h3>② <b>価値提案</b></h3><ul><li>お手伝いで繋がるまかないマッチングサービス</li><li>店舗オーナー：食材ロスを減らし、利益を最大化する仕組み</li><li>消費者：賞味期限間近の食材を使った安価なまかない、アプリで簡単マッチング</li></ul></div>
+      <div class="blk cr"><h3>④ <b>顧客との関係</b></h3><ul><li>アプリで探して応募・購入</li><li>評価・レビュー、食べた記録</li><li>店舗へ人気のまかない・集まる募集をレポート</li></ul></div>
+      <div class="blk ch"><h3>③ <b>チャネル</b></h3><ul><li>スマホアプリ</li><li>SNS（まかないの写真）</li><li>大学・商店街でのチラシ</li><li>店舗への直接営業</li></ul></div>
+      <div class="blk cs"><h3>① <b>顧客セグメント</b></h3><ul><li>店舗オーナー：個人経営の飲食店。余る食材と、短時間の人手不足を抱える</li><li>消費者：近所でお金をかけずに食べたい学生・一人暮らし</li></ul></div>
+      <div class="blk co"><h3>⑨ <b>コスト構造</b></h3><ul><li>システムの開発・運用費</li><li>決済手数料・保険料</li><li>営業・広告宣伝費</li><li>人件費</li></ul></div>
+      <div class="blk rs"><h3>⑤ <b>収益の流れ</b></h3><ul><li>店舗の月額掲載料</li><li>店舗からの手数料（マッチング成立時・まかない販売時）</li><li>消費者からは手数料を取らない</li></ul></div>
+    </div>
+  </section>
+
+  <p class="note"><b>確認が必要な点：</b>A の「お手伝いのお礼をまかないで払う」形は、最低賃金など働き方の扱いによっては、法律の確認が必要です。</p>
+</main>
+</body>
+</html>
