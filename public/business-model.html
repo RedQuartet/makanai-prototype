@@ -86,6 +86,17 @@
   .dg .d-line { stroke: var(--value); stroke-width: 2; stroke-dasharray: 7 6; fill: none; }
   .dg .v-t { fill: var(--value); font-size: 14px; font-weight: 500; }
   .dg .m-t { fill: var(--money); font-size: 14px; font-weight: 700; }
+  .dg .m-s { fill: var(--money); font-size: 12.5px; font-weight: 500; }
+
+  .ex-cap { color: var(--muted); font-size: 14px; }
+  .ex-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .ex { display: grid; gap: 4px; align-content: start; padding: 16px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+  .ex span { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .ex strong { font: 700 28px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+  .ex strong small { font: 700 15px var(--font-body); margin-left: 2px; }
+  .ex > small { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .ex.ours { background: var(--money-soft); border-color: transparent; }
+  .ex.ours strong { color: var(--money); }
   .dg .v-fill { fill: var(--value); }
   .dg .m-fill { fill: var(--money); }
   .dg .person { fill: var(--bg); stroke: var(--value); stroke-width: 3; }
@@ -162,7 +173,7 @@
     <figure>
       <p class="scroll-hint">図は横にスクロールできます。</p>
       <div class="scroll">
-        <svg class="dg" viewBox="0 0 1090 676" role="img" aria-label="MAKANAI 運営が中央にいる。左の決済代行会社・クラウドベンダー・保険会社から給与の振込・ITインフラ・保険を受け取り、それぞれに料金を払う。右上の店舗オーナーには掲載・マッチング・食材ロス管理の仕組みと給与の支払い代行を提供し、給与と掲載料・手数料を受け取る。右下の消費者にはまかないの検索・マッチングを提供して給与を代わりに払い、好みやレビューのデータを受け取る。店舗オーナーと消費者は雇用契約を結び、お手伝いとまかないを直接やりとりする。">
+        <svg class="dg" viewBox="0 0 1090 676" role="img" aria-label="MAKANAI 運営が中央にいる。左の決済代行会社・クラウドベンダー・保険会社から給与の振込・ITインフラ・保険を受け取り、それぞれに料金を払う。右上の店舗オーナーには掲載・マッチング・食材ロス管理の仕組みと給与の支払い代行を提供し、給与とシステム利用料（給与の約30%、掲載は無料）を受け取る。右下の消費者にはまかないの検索・マッチングを提供して給与を代わりに払い、好みやレビューのデータを受け取る。店舗オーナーと消費者は雇用契約を結び、お手伝いとまかないを直接やりとりする。">
           <defs>
             <marker id="ah-v" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path class="v-fill" d="M0 0L10 5L0 10z"/></marker>
             <marker id="ah-m" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path class="m-fill" d="M0 0L10 5L0 10z"/></marker>
@@ -218,7 +229,8 @@
           <line class="v-line" x1="592" y1="146" x2="838" y2="146" marker-end="url(#ah-v)"/>
           <text class="v-t" x="715" y="135" text-anchor="middle">給与の支払い代行</text>
           <line class="m-line" x1="838" y1="192" x2="592" y2="192" marker-end="url(#ah-m)"/>
-          <text class="m-t" x="715" y="216" text-anchor="middle">¥ 給与 + ¥ 掲載料・手数料</text>
+          <text class="m-t" x="715" y="216" text-anchor="middle">¥ 給与 + ¥ システム利用料</text>
+          <text class="m-s" x="715" y="235" text-anchor="middle">（給与の約 30%・掲載は無料）</text>
 
           <!-- Consumer -->
           <circle class="person" cx="955" cy="481" r="19"/>
@@ -249,8 +261,18 @@
         <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="lm" x1="0" y1="5" x2="36" y2="5"/></svg><span class="yen">¥</span>&nbsp;金銭</span>
         <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="ld" x1="0" y1="5" x2="36" y2="5"/></svg>店舗と消費者の直接のやりとり</span>
       </div>
-      <figcaption>お金は店舗オーナーから MAKANAI に入ります。給与は MAKANAI が店舗の代わりに消費者へ払い、残りがパートナーへの支払いと運営に回ります。消費者は何も払わず、お手伝いをして給与とまかないの両方を受け取ります。</figcaption>
+      <figcaption>掲載は無料です。店舗オーナーは、お手伝いが成立したときだけ、給与にシステム利用料（給与の約 30%）を足して MAKANAI に払います。給与は MAKANAI が店舗の代わりに消費者へ払い、システム利用料がパートナーへの支払いと運営に回ります。消費者は何も払わず、給与とまかないの両方を受け取ります。</figcaption>
     </figure>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="eyebrow">PER MATCH</span><h2>1 回のお手伝いで動くお金</h2></div>
+    <p class="ex-cap">例：時給 1,300 円で、1 時間のお手伝いをしたとき</p>
+    <div class="ex-row">
+      <div class="ex"><span>店舗オーナーが払う</span><strong>1,690<small>円</small></strong><small>給与 1,300 円 + システム利用料 390 円</small></div>
+      <div class="ex"><span>消費者が受け取る</span><strong>1,300<small>円</small></strong><small>給与。これに加えて、まかないを食べられる</small></div>
+      <div class="ex ours"><span>MAKANAI の収入</span><strong>390<small>円</small></strong><small>システム利用料（給与の 30%）。ここから決済手数料・保険料などを払う</small></div>
+    </div>
   </section>
 
   <section>
@@ -260,7 +282,7 @@
       <tbody>
         <tr>
           <th scope="row">店舗オーナー</th>
-          <td data-label="渡すもの"><ul><li><span class="yen">¥</span> 給与（最低賃金以上）</li><li><span class="yen">¥</span> 掲載料・手数料</li><li>まかない（賞味期限間近の食材で）</li></ul></td>
+          <td data-label="渡すもの"><ul><li><span class="yen">¥</span> 給与（最低賃金以上）</li><li><span class="yen">¥</span> システム利用料（給与の約 30%）</li><li>まかない（賞味期限間近の食材で）</li></ul></td>
           <td class="swap" aria-hidden="true">⇄</td>
           <td data-label="受け取るもの"><ul><li>お手伝い（人手）</li><li>食材ロスの削減</li><li>新しいお客さん</li></ul></td>
         </tr>
@@ -274,7 +296,7 @@
           <th scope="row">MAKANAI 運営</th>
           <td data-label="渡すもの"><ul><li>掲載・マッチング・食材ロス管理の仕組み</li><li><span class="yen">¥</span> 給与の支払い代行</li><li><span class="yen">¥</span> パートナーへの支払い</li></ul></td>
           <td class="swap" aria-hidden="true">⇄</td>
-          <td data-label="受け取るもの"><ul><li><span class="yen">¥</span> 給与（消費者へ渡す分）</li><li><span class="yen">¥</span> 掲載料・手数料</li><li>好み・レビューのデータ</li><li>決済・IT インフラ・保険</li></ul></td>
+          <td data-label="受け取るもの"><ul><li><span class="yen">¥</span> 給与（消費者へ渡す分）</li><li><span class="yen">¥</span> システム利用料</li><li>好み・レビューのデータ</li><li>決済・IT インフラ・保険</li></ul></td>
         </tr>
       </tbody>
     </table>
@@ -291,7 +313,7 @@
       <div class="blk ch"><h3>③ <b>チャネル</b></h3><ul><li>スマホアプリ</li><li>SNS（まかないの写真）</li><li>大学・商店街でのチラシ</li><li>店舗への直接営業</li></ul></div>
       <div class="blk cs"><h3>① <b>顧客セグメント</b></h3><ul><li>店舗オーナー：個人経営の飲食店。余る食材と、短時間の人手不足を抱える</li><li>消費者：近所でお金をかけずに食べたい学生・一人暮らし。空き時間がある</li></ul></div>
       <div class="blk co"><h3>⑨ <b>コスト構造</b></h3><ul><li>システムの開発・運用費</li><li>決済・振込手数料、保険料</li><li>営業・広告宣伝費</li><li>人件費</li></ul></div>
-      <div class="blk rs"><h3>⑤ <b>収益の流れ</b></h3><ul><li>店舗の月額掲載料</li><li>店舗からのマッチング手数料（お手伝いが成立するごと）</li><li>消費者からはお金を取らない</li></ul></div>
+      <div class="blk rs"><h3>⑤ <b>収益の流れ</b></h3><ul><li>掲載は無料</li><li>お手伝いが成立するたびに、店舗からシステム利用料（給与の約 30%）</li><li>消費者からはお金を取らない</li></ul></div>
     </div>
   </section>
 
