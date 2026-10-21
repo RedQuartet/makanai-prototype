@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { Routes, Route, Link, NavLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, Heart, Home, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, Sparkles, Star, Store, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, HandHeart, HandHelping, Heart, Home, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, Soup, Sparkles, Star, Store, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
 import { areas, categories, makanaiItems, statusLabels } from './data'
 import { storage } from './storage'
 import type { Application, ApplicationStatus, MakanaiItem } from './types'
@@ -43,14 +43,17 @@ function Welcome() {
   const navigate = useNavigate()
   const start = () => { storage.markVisited(); navigate('/home', { replace: true }) }
   return <div className="welcome">
-    <div className="welcome-top"><Logo /><p>まかないで、うれしい出会いを</p></div>
-    <div className="welcome-visual">
-      <div className="sun-dot" /><Photo src={makanaiItems[0].dishImage} alt="特製からあげ定食" />
-      <div className="floating-note"><Sparkles /> おいしい出会い、みつけた</div>
+    <div className="welcome-bg" aria-hidden="true"><Photo src={makanaiItems[0].dishImage} alt="特製からあげ定食" /></div>
+    <div className="welcome-brand">
+      <span className="welcome-mark"><UtensilsCrossed /></span>
+      <h1>MAKANAI</h1>
+      <p>まかないで、うれしい出会いを</p>
+      <ul className="welcome-steps"><li><Soup />食べる</li><li><HandHelping />手伝う</li><li><HandHeart />つながる</li></ul>
     </div>
-    <div className="welcome-copy"><span className="eyebrow">食べる・手伝う・つながる</span><h1>今日、何が<br /><em>食べたい？</em></h1><p>気になるまかないを見つけたら、<br />そのお店をちょっとお手伝い。</p></div>
-    <button className="primary-button wide" onClick={start}>まかないを探す <ArrowRight /></button>
-    <button className="text-button" onClick={start}>まずはのぞいてみる</button>
+    <div className="welcome-actions">
+      <button className="primary-button wide" onClick={start}>はじめる <ArrowRight /></button>
+      <button className="text-button" onClick={start}>まずはのぞいてみる</button>
+    </div>
   </div>
 }
 
