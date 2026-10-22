@@ -1,22 +1,15 @@
-import { useEffect, useMemo, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { Routes, Route, Link, NavLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, HandHeart, HandHelping, Heart, Home, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, Soup, Sparkles, Star, Store, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
-import { areas, categories, makanaiItems, statusLabels } from './data'
+import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, Coins, HandHelping, Heart, Home, Leaf, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, Sparkles, Star, Store, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
+import { areas, categories, demoUser as user, makanaiItems, statusLabels } from './data'
+import { DemoProvider, useDemo } from './demo'
+import { dayLabel, durationLabel, endTime, fromDateKey, ingredientList, jobDate, jobWhen, kg, rescuedPerPerson, toDateKey, totalKg, wageOf, yen } from './format'
+import { OwnerApplicants, OwnerHome, OwnerNewJob } from './owner'
 import { storage } from './storage'
-import type { Application, ApplicationStatus, MakanaiItem } from './types'
+import { Logo, Photo } from './ui'
+import type { Again, Application, ApplicationStatus, Category, MakanaiItem } from './types'
 
-const user = { name: '佐藤 みのり', initial: 'み', area: '東京都世田谷区' }
-
-function Photo({ src, alt, className = '' }: { src: string; alt: string; className?: string }) {
-  const [failed, setFailed] = useState(false)
-  return failed
-    ? <div className={`photo-fallback ${className}`} role="img" aria-label={`${alt}のイメージ`}><UtensilsCrossed /><span>{alt}</span></div>
-    : <img className={className} src={src} alt={alt} onError={() => setFailed(true)} />
-}
-
-function Logo({ compact = false }: { compact?: boolean }) {
-  return <Link to="/home" className={`logo ${compact ? 'compact' : ''}`} aria-label="MAKANAI ホームへ"><span className="logo-mark"><UtensilsCrossed /></span><span>MAKANAI</span></Link>
-}
+const payLine = (item: MakanaiItem) => `給与 ${yen(wageOf(item.help))} ＋ まかない無料`
 
 function AppHeader({ back, title }: { back?: boolean; title?: string }) {
   const navigate = useNavigate()
@@ -47,33 +40,70 @@ function Welcome() {
     <div className="welcome-brand">
       <span className="welcome-mark"><UtensilsCrossed /></span>
       <h1>MAKANAI</h1>
-      <p>まかないで、うれしい出会いを</p>
-      <ul className="welcome-steps"><li><Soup />食べる</li><li><HandHelping />手伝う</li><li><HandHeart />つながる</li></ul>
+      <p>まかないから探す求人サービス</p>
+      <ul className="welcome-steps"><li><Search />探す</li><li><HandHelping />手伝う</li><li><Coins />給与＋まかない</li></ul>
     </div>
     <div className="welcome-actions">
       <button className="primary-button wide" onClick={start}>はじめる <ArrowRight /></button>
       <button className="text-button" onClick={start}>まずはのぞいてみる</button>
+      <Link className="owner-link" to="/owner"><Store /> お店の方はこちら</Link>
     </div>
   </div>
 }
 
-function FavoriteButton({ id, favorites, toggle, light = false }: { id: string; favorites: string[]; toggle: (id: string) => void; light?: boolean }) {
+function FavoriteButton({ id, light = false }: { id: string; light?: boolean }) {
+  const { favorites, toggleFavorite } = useDemo()
   const active = favorites.includes(id)
-  return <button className={`favorite-button ${active ? 'active' : ''} ${light ? 'light' : ''}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(id) }} aria-label={active ? 'お気に入りから削除' : 'お気に入りに追加'}><Heart fill={active ? 'currentColor' : 'none'} /></button>
+  return <button className={`favorite-button ${active ? 'active' : ''} ${light ? 'light' : ''}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(id) }} aria-label={active ? 'お気に入りから削除' : 'お気に入りに追加'}><Heart fill={active ? 'currentColor' : 'none'} /></button>
 }
 
-function DishCard({ item, favorites, toggle, recommended = false }: { item: MakanaiItem; favorites: string[]; toggle: (id: string) => void; recommended?: boolean }) {
+function DishCard({ item }: { item: MakanaiItem }) {
+  const { visitedStores } = useDemo()
+  const first = item.ingredients[0]
   return <article className="dish-card">
     <Link to={`/makanai/${item.id}`} className="dish-photo-wrap">
       <Photo src={item.dishImage} alt={item.dishName} className="dish-photo" />
-      <span className="category-pill">{item.category}</span>{recommended && <span className="recommend-pill"><Sparkles /> 近くておすすめ</span>}<FavoriteButton id={item.id} favorites={favorites} toggle={toggle} light />
+      <span className="category-pill">{item.category}</span>{!visitedStores.has(item.storeName) && <span className="first-pill"><Sparkles /> はじめてのお店</span>}<FavoriteButton id={item.id} light />
     </Link>
     <div className="dish-card-body">
-      <div className="card-meta"><div className="card-location"><MapPin />{item.area}</div><div className="access-time"><Navigation />現在地から {item.access.route}</div></div><h2>{item.dishName}</h2><div className="store-rating"><p className="store-name">{item.storeName}</p><span><Star fill="currentColor" />{item.rating.toFixed(1)} <small>({item.reviewCount}件)</small></span></div><p className="dish-description">{item.shortDescription}</p>
+      <div className="card-meta"><div className="card-location"><MapPin />{item.area}</div><div className="access-time"><Navigation />現在地から {item.access.route}</div></div><h2>{item.dishName}</h2><div className="store-rating"><p className="store-name">{item.storeName}</p><span><Star fill="currentColor" />{item.rating.toFixed(1)} <small>({item.reviewCount}件)</small></span></div>
+      <div className="job-chips"><span><CalendarDays />{jobWhen(item)}</span><span className="pay"><Coins />{payLine(item)}</span></div>
+      {first && <p className="rescue-line"><Leaf />使う食材：期限間近の{first.name} {kg(first.kg)}{item.ingredients.length > 1 ? ' ほか' : ''}</p>}
+      <p className="dish-description">{item.shortDescription}</p>
       <div className="tag-row">{item.tags.map(tag => <span key={tag}>#{tag}</span>)}</div>
       <Link className="card-link" to={`/makanai/${item.id}`}>詳しく見る <ChevronRight /></Link>
     </div>
   </article>
+}
+
+/** 今日食べられるまかないから、好み・新着・はじめてのお店を重視して 1 つ選ぶ（もう応募した求人は除く） */
+function pickToday(items: MakanaiItem[], liked: Set<Category>, visited: Set<string>, applied: Set<string>) {
+  const open = items.filter(x => x.help.remaining > 0 && !applied.has(x.id))
+  const today = open.filter(x => x.help.dayOffset === 0)
+  const score = (x: MakanaiItem) => x.rating * 10 - x.access.minutes / 5 + (liked.has(x.category) ? 15 : 0) + (x.fresh ? 6 : 0) + (visited.has(x.storeName) ? 0 : 5)
+  const item = [...(today.length ? today : open)].sort((a, b) => score(b) - score(a))[0]
+  if (!item) return null
+  const reason = liked.has(item.category) ? (item.category === 'その他' ? 'あなたの好みに近い一皿' : `${item.category}が好きなあなたに`)
+    : item.fresh ? '今日出たばかりのまかない'
+    : !visited.has(item.storeName) ? 'まだ行ったことのないお店'
+    : `${item.access.route}で行けるお店`
+  return { item, reason }
+}
+
+function TodayPick({ item, reason }: { item: MakanaiItem; reason: string }) {
+  return <section className="today-pick" aria-label="今日のおすすめまかない">
+    <Link to={`/makanai/${item.id}`} className="today-card">
+      <Photo src={item.dishImage} alt={item.dishName} />
+      <span className="today-label"><Sparkles /> 今日のおすすめまかない</span>
+      <div className="today-body">
+        <span className="today-reason">{reason}</span>
+        <h2>{item.dishName}</h2>
+        <p>{item.storeName}・{item.access.route}</p>
+        <div className="today-job"><b>{jobWhen(item)}</b><span>{durationLabel(item.help.minutes)}のお手伝いで、{payLine(item)}</span></div>
+      </div>
+    </Link>
+    <p className="rescue-line"><Leaf />期限間近の{ingredientList(item)}を使い切ります</p>
+  </section>
 }
 
 type Point = { x: number; y: number }
@@ -88,9 +118,10 @@ function pointInPolygon(point: Point, polygon: Point[]) {
 }
 
 function AreaDrawModal({ onClose, onApply }: { onClose: () => void; onApply: (ids: string[]) => void }) {
+  const { items } = useDemo()
   const [points, setPoints] = useState<Point[]>([])
   const [drawing, setDrawing] = useState(false)
-  const selected = points.length > 2 ? makanaiItems.filter(item => pointInPolygon(item.mapPoint, points)) : []
+  const selected = points.length > 2 ? items.filter(item => pointInPolygon(item.mapPoint, points)) : []
   const getPoint = (event: ReactPointerEvent<SVGSVGElement>) => {
     const rect = event.currentTarget.getBoundingClientRect()
     return { x: (event.clientX - rect.left) * 360 / rect.width, y: (event.clientY - rect.top) * 280 / rect.height }
@@ -114,7 +145,7 @@ function AreaDrawModal({ onClose, onApply }: { onClose: () => void; onApply: (id
         <g className="map-lines"><path d="M58 144 L318 117"/><path d="M176 43 L167 225"/><path d="M86 93 L265 188"/><path d="M225 75 L117 205"/></g>
         <g className="map-labels"><text x="176" y="102">東京</text><text x="139" y="173">世田谷</text><text x="182" y="195">目黒</text><text x="273" y="150">市川</text><text x="154" y="260">横浜</text><text x="175" y="31">さいたま</text></g>
         {points.length > 1 && <polygon points={polygonPoints} fill="rgba(237,141,131,.28)" stroke="#d96f67" strokeWidth="4" strokeLinejoin="round" />}
-        {makanaiItems.map(item => <g className={`shop-pin ${selected.some(x => x.id === item.id) ? 'selected' : ''}`} key={item.id} transform={`translate(${item.mapPoint.x} ${item.mapPoint.y})`}><circle r="10"/><text y="4">●</text></g>)}
+        {items.map(item => <g className={`shop-pin ${selected.some(x => x.id === item.id) ? 'selected' : ''}`} key={item.id} transform={`translate(${item.mapPoint.x} ${item.mapPoint.y})`}><circle r="10"/><text y="4">●</text></g>)}
       </svg>
       <span className="map-current"><LocateFixed /> 現在地</span>
     </div>
@@ -123,34 +154,39 @@ function AreaDrawModal({ onClose, onApply }: { onClose: () => void; onApply: (id
   </section></div>
 }
 
-function HomePage({ favorites, toggle }: { favorites: string[]; toggle: (id: string) => void }) {
+function HomePage() {
+  const { items, applications, likedCategories, visitedStores } = useDemo()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('すべて')
   const [area, setArea] = useState('すべてのエリア')
   const [sort, setSort] = useState<'recommend' | 'rating' | 'distance'>('recommend')
   const [mapOpen, setMapOpen] = useState(false)
   const [drawnIds, setDrawnIds] = useState<string[] | null>(null)
-  const results = makanaiItems.filter(item => {
+  const todayKey = toDateKey(new Date())
+  const pick = pickToday(items, likedCategories, visitedStores, new Set(applications.filter(a => a.status < 4 || (a.jobDate ?? '') >= todayKey).map(a => a.makanaiId)))
+  const results = items.filter(item => {
     const query = search.trim().toLowerCase()
-    const matchesQuery = !query || [item.dishName, item.storeName, item.shortDescription, ...item.tags].join(' ').toLowerCase().includes(query)
+    const matchesQuery = !query || [item.dishName, item.storeName, item.shortDescription, ...item.tags, ...item.ingredients.map(x => x.name)].join(' ').toLowerCase().includes(query)
     const matchesCategory = category === 'すべて' || item.category === category
     const matchesArea = area === 'すべてのエリア' || item.area.startsWith(area)
     const matchesDrawing = !drawnIds || drawnIds.includes(item.id)
     return matchesQuery && matchesCategory && matchesArea && matchesDrawing
-  }).sort((a, b) => sort === 'rating' ? b.rating - a.rating || b.reviewCount - a.reviewCount : sort === 'distance' ? a.access.minutes - b.access.minutes : (b.rating * 10 - b.access.minutes / 5) - (a.rating * 10 - a.access.minutes / 5))
+  }).sort((a, b) => sort === 'rating' ? b.rating - a.rating || b.reviewCount - a.reviewCount : sort === 'distance' ? a.access.minutes - b.access.minutes : a.help.dayOffset - b.help.dayOffset || (b.rating * 10 - b.access.minutes / 5) - (a.rating * 10 - a.access.minutes / 5))
+  const reset = () => { setSearch(''); setCategory('すべて'); setArea('すべてのエリア'); setDrawnIds(null) }
   return <Shell>
     <section className="home-intro"><div><span className="hello">こんにちは、{user.name.split(' ')[1]}さん</span><h1>今日は何が<br /><em>食べたい？</em></h1></div></section>
-    <section className="location-panel"><span className="location-icon"><LocateFixed /></span><div><small>デモ現在地</small><strong>三軒茶屋駅付近</strong><span>この場所から近い順におすすめしています</span></div><button onClick={() => { setArea('すべてのエリア'); setDrawnIds(null) }}>現在地に戻す</button></section>
-    <section className="search-panel">
-      <label className="search-box"><Search /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="料理やお店を検索" /></label>
-      <label className="area-select"><MapPin /><select value={area} onChange={e => setArea(e.target.value)}>{areas.map(a => <option key={a}>{a}</option>)}</select></label>
+    {pick && <TodayPick item={pick.item} reason={pick.reason} />}
+    <section className="finder" aria-label="まかないを探す">
+      <label className="search-box"><Search /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="料理や食材で検索" aria-label="料理・お店・食材で検索" /></label>
+      <label className="area-select"><MapPin /><select value={area} onChange={e => setArea(e.target.value)} aria-label="エリア">{areas.map(a => <option key={a} value={a}>{a === 'すべてのエリア' ? '全エリア' : a}</option>)}</select></label>
+      <button className={`map-button ${drawnIds ? 'active' : ''}`} onClick={() => setMapOpen(true)} aria-label="地図を囲ってエリア検索"><Map />{drawnIds && <b>{drawnIds.length}</b>}</button>
     </section>
-    <div className="map-search-row"><button className={drawnIds ? 'active' : ''} onClick={() => setMapOpen(true)}><Map />{drawnIds ? `囲ったエリア：${drawnIds.length}件` : '地図を囲ってエリア検索'}<ChevronRight /></button>{drawnIds && <button className="clear-map" onClick={() => setDrawnIds(null)}>解除</button>}</div>
+    {drawnIds && <div className="drawn-chip"><span>地図で囲ったエリア：{drawnIds.length}件</span><button onClick={() => setDrawnIds(null)}>解除</button></div>}
     <div className="category-scroll" aria-label="カテゴリー">{categories.map(c => <button key={c} className={category === c ? 'active' : ''} onClick={() => setCategory(c)}>{c}</button>)}</div>
-    <section className="list-section"><div className="section-heading"><div><span className="eyebrow">NEAR YOU</span><h2>{drawnIds ? '囲ったエリアのまかない' : area === 'すべてのエリア' ? '現在地からのおすすめ' : `${area}のまかない`}</h2></div><span>{results.length}品</span></div>
+    <section className="list-section"><div className="section-heading"><div><span className="eyebrow">NEAR YOU</span><h2>{drawnIds ? '囲ったエリアのまかない' : area === 'すべてのエリア' ? '現在地からのおすすめ' : `${area}のまかない`}</h2><p className="near-note"><LocateFixed />三軒茶屋駅付近（デモの現在地）</p></div><span>{results.length}品</span></div>
       <div className="sort-row"><span>並び替え</span><div>{([['recommend','おすすめ順'],['rating','評価が高い順'],['distance','距離が近い順']] as const).map(([value,label]) => <button key={value} className={sort === value ? 'active' : ''} onClick={() => setSort(value)}>{label}</button>)}</div></div>
-      <div className="dish-grid">{results.map((item, index) => <DishCard key={item.id} item={item} favorites={favorites} toggle={toggle} recommended={!drawnIds && area === 'すべてのエリア' && sort !== 'rating' && index < 2} />)}</div>
-      {!results.length && <div className="empty-state"><span>🍚</span><h2>ぴったりのまかないが見つかりませんでした</h2><p>検索や絞り込みを変えてみてください。</p><button className="secondary-button" onClick={() => { setSearch(''); setCategory('すべて'); setArea('すべてのエリア'); setDrawnIds(null) }}>条件をリセット</button></div>}
+      <div className="dish-grid">{results.map(item => <DishCard key={item.id} item={item} />)}</div>
+      {!results.length && <div className="empty-state"><span>🍚</span><h2>ぴったりのまかないが見つかりませんでした</h2><p>検索や絞り込みを変えてみてください。</p><button className="secondary-button" onClick={reset}>条件をリセット</button></div>}
     </section>
     {mapOpen && <AreaDrawModal onClose={() => setMapOpen(false)} onApply={(ids) => { setDrawnIds(ids); setArea('すべてのエリア'); setMapOpen(false) }} />}
   </Shell>
@@ -158,108 +194,171 @@ function HomePage({ favorites, toggle }: { favorites: string[]; toggle: (id: str
 
 function NotFound() { return <Shell back title="見つかりません"><div className="empty-state tall"><span>🍽️</span><h1>お探しのまかないが<br />見つかりませんでした</h1><Link className="primary-button" to="/home">ホームへ戻る</Link></div></Shell> }
 
-function MakanaiDetail({ favorites, toggle }: { favorites: string[]; toggle: (id: string) => void }) {
-  const { id } = useParams(); const item = makanaiItems.find(x => x.id === id)
+function useItem() {
+  const { id } = useParams()
+  const { items } = useDemo()
+  return items.find(x => x.id === id)
+}
+
+function MakanaiDetail() {
+  const { visitedStores } = useDemo()
+  const item = useItem()
   if (!item) return <NotFound />
   return <Shell back>
-    <section className="hero-photo"><Photo src={item.dishImage} alt={item.dishName} /><FavoriteButton id={item.id} favorites={favorites} toggle={toggle} light /><span className="hero-category">{item.category}</span></section>
+    <section className="hero-photo"><Photo src={item.dishImage} alt={item.dishName} /><FavoriteButton id={item.id} light /><span className="hero-category">{item.category}</span></section>
     <article className="detail-content overlap">
-      <div className="card-location"><MapPin />{item.area}</div><h1>{item.dishName}</h1><p className="detail-store"><Store />{item.storeName}</p><p className="lead">{item.description}</p>
+      <div className="card-location"><MapPin />{item.area}</div><h1>{item.dishName}</h1><p className="detail-store"><Store />{item.storeName}{!visitedStores.has(item.storeName) && <span className="first-tag">はじめてのお店</span>}</p><p className="lead">{item.description}</p>
+      <section className="rescue-box">
+        <span className="mini-title"><Leaf /> このまかないで救う食材</span>
+        {item.ingredients.map(x => <div className="rescue-row" key={x.name}><b>{x.name}</b><span>{kg(x.kg)}</span><em className={x.daysLeft <= 1 ? 'urgent' : ''}>期限まであと{x.daysLeft}日</em></div>)}
+        <p>合計 {kg(totalKg(item))}（{item.help.slots}人分）。使い切れずに捨てられるはずだった食材を、お手伝いのあとのまかないにします。</p>
+      </section>
       <section className="recommend-box"><span className="mini-title"><Sparkles /> おすすめポイント</span>{item.recommendation.map((point, i) => <div className="recommend-row" key={point}><b>0{i + 1}</b><span>{point}</span></div>)}</section>
-      <section className="condition-box"><h2>このまかないの提供条件</h2><div><Clock3 /><span><small>タイミング</small>お手伝い終了後</span></div><div><UtensilsCrossed /><span><small>提供方法</small>{item.help.mealCondition}</span></div></section>
-      <div className="story-nudge"><span>まずは料理から。<br />気になったら、お店のことを知ってみよう。</span></div>
-      <Link to={`/store/${item.id}`} className="primary-button wide sticky-cta">このまかないを食べるには？ <ArrowRight /></Link>
+      <section className="condition-box"><h2>このまかないの提供条件</h2><div><Clock3 /><span><small>タイミング</small>お手伝いのあと</span></div><div><UtensilsCrossed /><span><small>提供方法</small>{item.help.mealCondition}</span></div><div><Coins /><span><small>料金</small>無料（給与とは別にもらえます）</span></div></section>
+      <div className="story-nudge"><span>まずは料理から。<br />気になったら、お店とお手伝いの中身を見てみよう。</span></div>
+      <Link to={`/store/${item.id}`} className="primary-button wide sticky-cta">このまかないがつく求人を見る <ArrowRight /></Link>
     </article>
   </Shell>
 }
 
 function StoreDetail() {
-  const { id } = useParams(); const item = makanaiItems.find(x => x.id === id)
+  const item = useItem()
   if (!item) return <NotFound />
+  const { help } = item
   const rows = [
-    [UtensilsCrossed, 'お手伝い内容', item.help.role], [Clock3, '所要時間', item.help.duration], [CalendarDays, '日時', item.help.date], [MapPin, '勤務場所', item.help.location], [Navigation, '現在地からのアクセス', `${item.access.route}（約${item.access.distance}）`], [UsersRound, '募集人数', item.help.capacity]
+    [UtensilsCrossed, 'お手伝いの内容', help.role], [CalendarDays, '日時', jobWhen(item)], [Clock3, '時間', durationLabel(help.minutes)], [MapPin, '勤務場所', help.location], [Navigation, '現在地からのアクセス', `${item.access.route}（約${item.access.distance}）`], [UsersRound, '募集人数', `あと${help.remaining}名（全${help.slots}名）`]
   ] as const
-  return <Shell back title="お店とお手伝い">
+  return <Shell back title="求人の詳細">
     <section className="store-hero"><Photo src={item.storeImage} alt={item.storeName} /><div className="store-hero-label"><span>このまかないのお店</span><h1>{item.storeName}</h1></div></section>
     <article className="detail-content">
       <section className="store-intro"><span className="eyebrow">ABOUT THE SHOP</span><h2>お店について</h2><p className="lead">{item.storeDescription}</p><div className="atmosphere"><span>お店の雰囲気</span><p>{item.atmosphere}</p></div></section>
       <section className="help-section"><span className="eyebrow">HELP & EAT</span><h2>お手伝いの内容</h2><p className="section-note">条件をよく確認してから応募してください。</p><div className="info-list">{rows.map(([Icon, label, value]) => <div className="info-row" key={label}><span className="info-icon"><Icon /></span><div><small>{label}</small><b>{value}</b></div></div>)}</div></section>
-      <section className="reward-card"><div><span>報酬条件</span><strong>{item.help.reward}</strong></div><hr /><div><span>まかない</span><strong>{item.dishName}</strong><small>{item.help.mealCondition}</small></div></section>
-      <section className="requirements"><h3>応募条件</h3><ul>{item.help.requirements.map(x => <li key={x}><Check />{x}</li>)}</ul></section>
-      <p className="legal-note">※ 表示されている報酬・勤務条件は体験用の仮データです。実際の適法性や労働条件を保証するものではありません。</p>
-      <Link to={`/apply/${item.id}`} className="primary-button wide sticky-cta">このお店でお手伝いする <ArrowRight /></Link>
+      <section className="reward-card">
+        <div><span>給与</span><strong className="reward-big">{yen(wageOf(help))}</strong><small>時給 {yen(help.hourlyWage)} × {durationLabel(help.minutes)}（地域の最低賃金以上）</small></div>
+        <div className="reward-sub"><span>交通費</span><strong>{help.transport}</strong></div>
+        <hr />
+        <div><span>まかない（無料）</span><strong>{item.dishName}</strong><small>{help.mealCondition}</small></div>
+      </section>
+      <section className="requirements"><h3>応募条件</h3><ul>{help.requirements.map(x => <li key={x}><Check />{x}</li>)}</ul></section>
+      <p className="legal-note">※ お店・給与・日時は体験用の仮データです。給与は地域の最低賃金以上で、まかないは給与とは別に無料で出ます。雇用契約はお店と結び、給与は MAKANAI がお店に代わって支払います。</p>
+      <Link to={`/apply/${item.id}`} className="primary-button wide sticky-cta">この求人に応募する <ArrowRight /></Link>
     </article>
   </Shell>
 }
 
-function ApplyConfirm({ applications, apply }: { applications: Application[]; apply: (id: string) => string }) {
-  const { id } = useParams(); const navigate = useNavigate(); const item = makanaiItems.find(x => x.id === id)
+function ApplyConfirm() {
+  const { applications, apply } = useDemo()
+  const navigate = useNavigate()
+  const item = useItem()
   if (!item) return <NotFound />
-  const existing = applications.find(x => x.makanaiId === item.id)
+  const { help } = item
+  const active = applications.find(x => x.makanaiId === item.id && x.status < 4)
   const submit = () => { const applicationId = apply(item.id); navigate(`/application/${applicationId}`, { replace: true }) }
   return <Shell back title="応募内容の確認"><article className="detail-content confirm-page">
     <div className="confirm-dish"><Photo src={item.dishImage} alt={item.dishName} /><div><small>お手伝いのあとのまかない</small><strong>{item.dishName}</strong><span>{item.storeName}</span></div></div>
-    <h1>応募内容を確認</h1><div className="confirm-list"><div><span>お手伝い</span><b>{item.help.role}</b></div><div><span>日時</span><b>{item.help.date}</b></div><div><span>所要時間</span><b>{item.help.duration}</b></div><div><span>報酬</span><b>{item.help.reward}</b></div><div><span>まかない条件</span><b>{item.help.mealCondition}</b></div></div>
-    <div className="notice-box"><strong>応募前にご確認ください</strong><ul><li>これは体験用プロトタイプで、実際の店舗へ通知されません。</li><li>当日は開始10分前を目安にお越しください。</li><li>体調不良時は無理をせず、お店へ連絡しましょう。</li></ul></div>
-    {existing ? <Link className="primary-button wide" to={`/application/${existing.id}`}>応募状況を見る <ArrowRight /></Link> : <button className="primary-button wide" onClick={submit}>内容を確認して応募する <ArrowRight /></button>}
+    <h1>応募内容を確認</h1><div className="confirm-list">
+      <div><span>お手伝い</span><b>{help.role}</b></div>
+      <div><span>日時</span><b>{jobWhen(item)}</b></div>
+      <div><span>時間</span><b>{durationLabel(help.minutes)}</b></div>
+      <div><span>給与</span><b>{yen(wageOf(help))}（時給 {yen(help.hourlyWage)} × {durationLabel(help.minutes)}）</b></div>
+      <div><span>交通費</span><b>{help.transport}</b></div>
+      <div><span>まかない</span><b>無料（{help.mealCondition}）</b></div>
+      <div><span>雇用契約</span><b>{item.storeName}と結びます</b></div>
+      <div><span>給与の受け取り</span><b>お手伝いのあと、MAKANAI がお店に代わって振り込みます</b></div>
+    </div>
+    <div className="notice-box"><strong>応募前にご確認ください</strong><ul><li>これは体験用プロトタイプで、実際の店舗へ通知されません。</li><li>当日は開始10分前を目安にお越しください。</li><li>体調がすぐれないときは無理をせず、お店へ連絡しましょう。</li><li>無料のまかないは、税金の計算では給与の一部として扱われます。</li></ul></div>
+    {active ? <Link className="primary-button wide" to={`/application/${active.id}`}>応募状況を見る <ArrowRight /></Link> : <button className="primary-button wide" onClick={submit}>内容を確認して応募する <ArrowRight /></button>}
     <p className="agreement">ボタンを押すことで、上記の内容に同意したものとします。</p>
   </article></Shell>
 }
 
 function Progress({ status }: { status: ApplicationStatus }) {
-  return <div className="progress-list">{statusLabels.map((label, i) => <div className={`progress-step ${i <= status ? 'done' : ''} ${i === status ? 'current' : ''}`} key={label}><span>{i < status ? <Check /> : i + 1}</span><div><b>{label}</b>{i === status && <small>{i === 4 ? 'おつかれさまでした。おいしい時間を！' : '現在のステータス'}</small>}</div></div>)}</div>
+  return <div className="progress-list">{statusLabels.map((label, i) => <div className={`progress-step ${i <= status ? 'done' : ''} ${i === status ? 'current' : ''}`} key={label}><span>{i < status || status === 4 ? <Check /> : i + 1}</span><div><b>{label}</b>{i === status && <small>{i === 4 ? 'おつかれさまでした。おいしい時間を！' : '現在のステータス'}</small>}</div></div>)}</div>
 }
 
-function ApplicationPage({ applications, advance }: { applications: Application[]; advance: (id: string) => void }) {
-  const { applicationId } = useParams(); const app = applications.find(x => x.id === applicationId); const item = makanaiItems.find(x => x.id === app?.makanaiId)
+const againLabels: Record<Again, string> = { visit: 'また行きたい', help: 'また手伝いたい' }
+
+function ReviewForm({ applicationId, placeholder }: { applicationId: string; placeholder: string }) {
+  const { saveReview } = useDemo()
+  const [again, setAgain] = useState<Again[]>([])
+  const [comment, setComment] = useState('')
+  const toggle = (value: Again) => setAgain(prev => prev.includes(value) ? prev.filter(x => x !== value) : [...prev, value])
+  const submit = (event: FormEvent) => { event.preventDefault(); saveReview(applicationId, { again, comment: comment.trim(), createdAt: new Date().toISOString() }) }
+  return <form className="review-form" onSubmit={submit}>
+    <h2>ひと言レビュー</h2>
+    <p>お店の画面に届きます。お店の励みになります。</p>
+    <div className="again-row">{(['visit', 'help'] as const).map(value => <button type="button" key={value} className={again.includes(value) ? 'on' : ''} aria-pressed={again.includes(value)} onClick={() => toggle(value)}>{value === 'visit' ? <Store /> : <HandHelping />}{againLabels[value]}</button>)}</div>
+    <label className="review-input"><span className="sr-only">ひと言</span><input id="review-comment" value={comment} maxLength={60} onChange={e => setComment(e.target.value)} placeholder={placeholder} /></label>
+    <button className="primary-button wide" disabled={!again.length && !comment.trim()}>レビューを送る</button>
+  </form>
+}
+
+function ReviewDone({ application }: { application: Application }) {
+  const review = application.review!
+  return <div className="review-done"><span className="mini-title"><Check /> レビューを送りました</span>{review.again.length > 0 && <div className="again-chips">{review.again.map(x => <span key={x} className="again-chip">{againLabels[x]}</span>)}</div>}{review.comment && <p>「{review.comment}」</p>}</div>
+}
+
+function ApplicationPage() {
+  const { applicationId } = useParams()
+  const { applications, items, setStatus } = useDemo()
+  const app = applications.find(x => x.id === applicationId)
+  const item = items.find(x => x.id === app?.makanaiId)
   if (!app || !item) return <NotFound />
-  const messages = ['応募が完了しました！', 'お店からのお返事を待っています', 'お手伝いが確定しました！', 'お手伝い、おつかれさまでした！', 'まかないを食べました！']
+  const date = app.jobDate ? fromDateKey(app.jobDate) : jobDate(item)
+  const when = `${dayLabel(date)} ${item.help.start}〜${endTime(item.help.start, item.help.minutes)}`
+  const messages = ['応募が完了しました！', 'お店の確認を待っています', '採用が決まりました！', 'お手伝い、おつかれさまでした！', 'まかないを食べました！']
+  const notes = ['お店が内容を確認すると、採用が決まります。', 'お店からのお返事を待っています。', `${when}に、お店へ向かいましょう。開始10分前が目安です。`, `給与 ${yen(wageOf(item.help))} は、MAKANAI がお店に代わって振り込みます。できたてのまかないをどうぞ。`, app.review ? 'レビューはお店に届きました。また会いに行きましょう。' : 'お店との出会いと、おいしい一皿。よかったら、ひと言レビューを送りましょう。']
   return <Shell back title="応募状況"><article className="completion-page">
-    <div className={`completion-icon status-${app.status}`}>{app.status === 4 ? '🍽️' : <BadgeCheck />}</div><span className="eyebrow">APPLICATION STATUS</span><h1>{messages[app.status]}</h1><p>{app.status === 0 ? '応募内容はデモ用として保存されました。' : app.status === 4 ? 'お店との出会いと、おいしい一皿。素敵な体験になりましたね。' : 'デモ操作で次のステータスへ進められます。'}</p>
-    <div className="application-summary"><Photo src={item.dishImage} alt={item.dishName} /><div><small>{item.storeName}</small><strong>{item.dishName}</strong><span><CalendarDays />{item.help.date}</span></div></div>
+    <div className={`completion-icon status-${app.status}`}>{app.status === 4 ? '🍽️' : <BadgeCheck />}</div><span className="eyebrow">APPLICATION STATUS</span><h1>{messages[app.status]}</h1><p>{notes[app.status]}</p>
+    <div className="application-summary"><Photo src={item.dishImage} alt={item.dishName} /><div><small>{item.storeName}</small><strong>{item.dishName}</strong><span><CalendarDays />{when}</span></div></div>
+    {app.status === 4 && <div className="rescue-result"><Leaf /><div><b>{kg(rescuedPerPerson(item))} の食材を救いました</b><span>期限間近の{item.ingredients.map(x => x.name).join('・')}を使ったまかないでした</span></div></div>}
+    {app.status === 4 && (app.review ? <ReviewDone application={app} /> : <ReviewForm applicationId={app.id} placeholder={`例：${item.dishName}、最高でした！`} />)}
     <Progress status={app.status} />
-    {app.status < 4 && <button className="primary-button wide" onClick={() => advance(app.id)}>デモ：次のステータスへ <ArrowRight /></button>}
-    {app.status === 4 && <Link to="/mypage" className="primary-button wide">マイページで思い出を見る <ArrowRight /></Link>}
+    {app.status < 4 && <><button className="primary-button wide" onClick={() => setStatus(app.id, Math.min(app.status + 1, 4) as ApplicationStatus)}>デモ：次のステータスへ <ArrowRight /></button><p className="demo-hint">お店側の画面の「応募者」からも進められます。<Link to="/owner/applicants">お店側の画面へ</Link></p></>}
+    {app.status === 4 && <Link to="/mypage" className="primary-button wide">マイページで記録を見る <ArrowRight /></Link>}
     <Link to="/home" className="text-link">ほかのまかないを探す</Link>
   </article></Shell>
 }
 
-function FavoritesPage({ favorites, toggle }: { favorites: string[]; toggle: (id: string) => void }) {
-  const items = makanaiItems.filter(x => favorites.includes(x.id))
-  return <Shell title="お気に入り"><section className="simple-page"><div className="page-title"><span className="eyebrow">YOUR FAVORITES</span><h1>食べてみたい<br />まかない</h1><p>{items.length}件のお気に入り</p></div>{items.length ? <div className="dish-grid">{items.map(x => <DishCard key={x.id} item={x} favorites={favorites} toggle={toggle} />)}</div> : <div className="empty-state"><span>♡</span><h2>まだお気に入りはありません</h2><p>食べてみたいまかないを見つけて、ハートを押してみましょう。</p><Link className="secondary-button" to="/home">まかないを探す</Link></div>}</section></Shell>
+function FavoritesPage() {
+  const { items, favorites } = useDemo()
+  const liked = items.filter(x => favorites.includes(x.id))
+  return <Shell title="お気に入り"><section className="simple-page"><div className="page-title"><span className="eyebrow">YOUR FAVORITES</span><h1>食べてみたい<br />まかない</h1><p>{liked.length}件のお気に入り</p></div>{liked.length ? <div className="dish-grid">{liked.map(x => <DishCard key={x.id} item={x} />)}</div> : <div className="empty-state"><span>♡</span><h2>まだお気に入りはありません</h2><p>食べてみたいまかないを見つけて、ハートを押してみましょう。</p><Link className="secondary-button" to="/home">まかないを探す</Link></div>}</section></Shell>
 }
 
-function MyPage({ favorites, applications }: { favorites: string[]; applications: Application[] }) {
-  const completed = applications.filter(a => a.status === 4)
+function MyPage() {
+  const { items, favorites, applications, resetDemo } = useDemo()
+  const withItem = applications.map(app => ({ app, item: items.find(x => x.id === app.makanaiId) })).filter((x): x is { app: Application; item: MakanaiItem } => !!x.item)
+  const active = withItem.filter(x => x.app.status < 4)
+  const completed = withItem.filter(x => x.app.status === 4)
+  const rescued = completed.reduce((sum, x) => sum + rescuedPerPerson(x.item), 0)
   return <Shell title="マイページ"><section className="mypage">
     <div className="profile-card"><div className="profile-avatar">{user.initial}</div><div><small>こんにちは！</small><h1>{user.name}</h1><span><MapPin />{user.area}</span></div></div>
-    <div className="stat-row"><Link to="/favorites"><b>{favorites.length}</b><span>お気に入り</span></Link><div><b>{applications.length}</b><span>応募した</span></div><div><b>{completed.length}</b><span>食べた</span></div></div>
-    <section className="mypage-section"><div className="section-heading"><h2>応募状況</h2></div>{applications.length ? <div className="application-list">{applications.map(app => { const item = makanaiItems.find(x => x.id === app.makanaiId); if (!item) return null; return <Link to={`/application/${app.id}`} className="application-card" key={app.id}><Photo src={item.dishImage} alt={item.dishName} /><div><span className={`status-chip status-${app.status}`}>{statusLabels[app.status]}</span><h3>{item.dishName}</h3><p>{item.storeName}</p></div><ChevronRight /></Link> })}</div> : <div className="small-empty"><p>応募したお手伝いはまだありません。</p><Link to="/home">食べたいまかないを探す</Link></div>}</section>
-    <section className="mypage-section"><div className="section-heading"><h2>食べたまかない</h2><span>{completed.length}皿</span></div>{completed.length ? <div className="eaten-grid">{completed.map(app => { const item = makanaiItems.find(x => x.id === app.makanaiId)!; return <Link to={`/makanai/${item.id}`} key={app.id}><Photo src={item.dishImage} alt={item.dishName} /><span>{item.dishName}</span></Link> })}</div> : <div className="small-empty"><span className="bowl">🍚</span><p>お手伝いのあとに食べたまかないが、ここに並びます。</p></div>}</section>
+    <div className="rescue-card"><span className="rescue-icon"><Leaf /></span><div><small>あなたが救った食材</small><strong>{kg(rescued)}</strong><span>まかない {completed.length} 皿分。期限間近の食材を、おいしく使い切りました。</span></div></div>
+    <div className="stat-row"><Link to="/favorites"><b>{favorites.length}</b><span>お気に入り</span></Link><div><b>{active.length}</b><span>応募中</span></div><div><b>{completed.length}</b><span>食べた</span></div></div>
+    <section className="mypage-section"><div className="section-heading"><h2>応募状況</h2></div>{active.length ? <div className="application-list">{active.map(({ app, item }) => <Link to={`/application/${app.id}`} className="application-card" key={app.id}><Photo src={item.dishImage} alt={item.dishName} /><div><span className={`status-chip status-${app.status}`}>{statusLabels[app.status]}</span><h3>{item.dishName}</h3><p>{item.storeName}</p></div><ChevronRight /></Link>)}</div> : <div className="small-empty"><p>応募中のお手伝いはありません。</p><Link to="/home">食べたいまかないを探す</Link></div>}</section>
+    <section className="mypage-section"><div className="section-heading"><h2>食べたまかない</h2><span>{completed.length}皿</span></div>{completed.length ? <div className="eaten-grid">{completed.map(({ app, item }) => <Link to={`/application/${app.id}`} key={app.id}><Photo src={item.dishImage} alt={item.dishName} />{app.review?.again.includes('visit') && <em>また行きたい</em>}<span>{item.dishName}</span></Link>)}</div> : <div className="small-empty"><span className="bowl">🍚</span><p>お手伝いのあとに食べたまかないが、ここに並びます。</p></div>}</section>
+    <section className="mypage-section demo-tools"><Link to="/owner" className="secondary-button wide"><Store /> お店側の画面を見る（デモ）</Link><button className="text-button" onClick={resetDemo}>デモのデータを最初に戻す</button></section>
   </section></Shell>
 }
 
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo({ top: 0 }) }, [pathname]); return null }
 
-export default function App() {
-  const [favorites, setFavorites] = useState<string[]>(storage.getFavorites)
-  const [applications, setApplications] = useState<Application[]>(storage.getApplications)
-  const toggleFavorite = (id: string) => setFavorites(prev => { const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]; storage.setFavorites(next); return next })
-  const apply = (makanaiId: string) => {
-    const existing = applications.find(x => x.makanaiId === makanaiId)
-    if (existing) return existing.id
-    const application: Application = { id: `app-${Date.now()}`, makanaiId, status: 0, appliedAt: new Date().toISOString() }
-    const next = [application, ...applications]; setApplications(next); storage.setApplications(next); return application.id
-  }
-  const advance = (id: string) => setApplications(prev => { const next = prev.map(a => a.id === id ? { ...a, status: Math.min(a.status + 1, 4) as ApplicationStatus } : a); storage.setApplications(next); return next })
+function AppRoutes() {
   const startPath = useMemo(() => storage.hasVisited() ? '/home' : '/welcome', [])
-  return <><ScrollToTop /><Routes>
+  return <Routes>
     <Route path="/" element={<Navigate to={startPath} replace />} /><Route path="/welcome" element={<Welcome />} />
-    <Route path="/home" element={<HomePage favorites={favorites} toggle={toggleFavorite} />} />
-    <Route path="/makanai/:id" element={<MakanaiDetail favorites={favorites} toggle={toggleFavorite} />} />
-    <Route path="/store/:id" element={<StoreDetail />} /><Route path="/apply/:id" element={<ApplyConfirm applications={applications} apply={apply} />} />
-    <Route path="/application/:applicationId" element={<ApplicationPage applications={applications} advance={advance} />} />
-    <Route path="/favorites" element={<FavoritesPage favorites={favorites} toggle={toggleFavorite} />} />
-    <Route path="/mypage" element={<MyPage favorites={favorites} applications={applications} />} /><Route path="*" element={<NotFound />} />
-  </Routes></>
+    <Route path="/home" element={<HomePage />} />
+    <Route path="/makanai/:id" element={<MakanaiDetail />} />
+    <Route path="/store/:id" element={<StoreDetail />} /><Route path="/apply/:id" element={<ApplyConfirm />} />
+    <Route path="/application/:applicationId" element={<ApplicationPage />} />
+    <Route path="/favorites" element={<FavoritesPage />} />
+    <Route path="/mypage" element={<MyPage />} />
+    <Route path="/owner" element={<OwnerHome />} /><Route path="/owner/new" element={<OwnerNewJob />} /><Route path="/owner/applicants" element={<OwnerApplicants />} />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+}
+
+export default function App() {
+  return <DemoProvider><ScrollToTop /><AppRoutes /></DemoProvider>
 }
