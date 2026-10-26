@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { Routes, Route, Link, NavLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, Coins, HandHelping, Heart, Home, Leaf, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, Sparkles, Star, Store, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
-import { areas, categories, demoUser as user, makanaiItems, statusLabels } from './data'
+import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, Coins, ExternalLink, HandHelping, Heart, Home, Leaf, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, Sparkles, Star, Store, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
+import { photoCredit } from './credits'
+import { areas, categories, demoUser as user, helpKinds, makanaiItems, statusLabels } from './data'
 import { DemoProvider, useDemo } from './demo'
 import { dayLabel, durationLabel, endTime, fromDateKey, ingredientList, jobDate, jobWhen, kg, rescuedPerPerson, toDateKey, totalKg, wageOf, yen } from './format'
 import { OwnerApplicants, OwnerHome, OwnerNewJob } from './owner'
 import { storage } from './storage'
-import { Logo, Photo } from './ui'
-import type { Again, Application, ApplicationStatus, Category, MakanaiItem } from './types'
+import { KindIcon, Logo, Photo } from './ui'
+import type { Again, Application, ApplicationStatus, Category, HelpKind, MakanaiItem } from './types'
 
 const payLine = (item: MakanaiItem) => `給与 ${yen(wageOf(item.help))} ＋ まかない無料`
 
@@ -67,7 +68,7 @@ function DishCard({ item }: { item: MakanaiItem }) {
     </Link>
     <div className="dish-card-body">
       <div className="card-meta"><div className="card-location"><MapPin />{item.area}</div><div className="access-time"><Navigation />現在地から {item.access.route}</div></div><h2>{item.dishName}</h2><div className="store-rating"><p className="store-name">{item.storeName}</p><span><Star fill="currentColor" />{item.rating.toFixed(1)} <small>({item.reviewCount}件)</small></span></div>
-      <div className="job-chips"><span><CalendarDays />{jobWhen(item)}</span><span className="pay"><Coins />{payLine(item)}</span></div>
+      <div className="job-chips"><span className="kind"><KindIcon kind={item.help.kind} />{item.help.kind}</span><span><CalendarDays />{jobWhen(item)}</span><span className="pay"><Coins />{payLine(item)}</span></div>
       {first && <p className="rescue-line"><Leaf />使う食材：期限間近の{first.name} {kg(first.kg)}{item.ingredients.length > 1 ? ' ほか' : ''}</p>}
       <p className="dish-description">{item.shortDescription}</p>
       <div className="tag-row">{item.tags.map(tag => <span key={tag}>#{tag}</span>)}</div>
@@ -99,7 +100,7 @@ function TodayPick({ item, reason }: { item: MakanaiItem; reason: string }) {
         <span className="today-reason">{reason}</span>
         <h2>{item.dishName}</h2>
         <p>{item.storeName}・{item.access.route}</p>
-        <div className="today-job"><b>{jobWhen(item)}</b><span>{durationLabel(item.help.minutes)}のお手伝いで、{payLine(item)}</span></div>
+        <div className="today-job"><b>{jobWhen(item)}</b><span>{durationLabel(item.help.minutes)}の{item.help.kind}のお手伝いで、{payLine(item)}</span></div>
       </div>
     </Link>
     <p className="rescue-line"><Leaf />期限間近の{ingredientList(item)}を使い切ります</p>
@@ -158,6 +159,7 @@ function HomePage() {
   const { items, applications, likedCategories, visitedStores } = useDemo()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('すべて')
+  const [kind, setKind] = useState<HelpKind | 'すべて'>('すべて')
   const [area, setArea] = useState('すべてのエリア')
   const [sort, setSort] = useState<'recommend' | 'rating' | 'distance'>('recommend')
   const [mapOpen, setMapOpen] = useState(false)
@@ -166,23 +168,26 @@ function HomePage() {
   const pick = pickToday(items, likedCategories, visitedStores, new Set(applications.filter(a => a.status < 4 || (a.jobDate ?? '') >= todayKey).map(a => a.makanaiId)))
   const results = items.filter(item => {
     const query = search.trim().toLowerCase()
-    const matchesQuery = !query || [item.dishName, item.storeName, item.shortDescription, ...item.tags, ...item.ingredients.map(x => x.name)].join(' ').toLowerCase().includes(query)
+    const matchesQuery = !query || [item.dishName, item.storeName, item.shortDescription, item.help.role, item.help.kind, ...item.tags, ...item.ingredients.map(x => x.name)].join(' ').toLowerCase().includes(query)
     const matchesCategory = category === 'すべて' || item.category === category
+    const matchesKind = kind === 'すべて' || item.help.kind === kind
     const matchesArea = area === 'すべてのエリア' || item.area.startsWith(area)
     const matchesDrawing = !drawnIds || drawnIds.includes(item.id)
-    return matchesQuery && matchesCategory && matchesArea && matchesDrawing
+    return matchesQuery && matchesCategory && matchesKind && matchesArea && matchesDrawing
   }).sort((a, b) => sort === 'rating' ? b.rating - a.rating || b.reviewCount - a.reviewCount : sort === 'distance' ? a.access.minutes - b.access.minutes : a.help.dayOffset - b.help.dayOffset || (b.rating * 10 - b.access.minutes / 5) - (a.rating * 10 - a.access.minutes / 5))
-  const reset = () => { setSearch(''); setCategory('すべて'); setArea('すべてのエリア'); setDrawnIds(null) }
+  const reset = () => { setSearch(''); setCategory('すべて'); setKind('すべて'); setArea('すべてのエリア'); setDrawnIds(null) }
+  const kinds = helpKinds.filter(k => items.some(x => x.help.kind === k))
   return <Shell>
     <section className="home-intro"><div><span className="hello">こんにちは、{user.name.split(' ')[1]}さん</span><h1>今日は何が<br /><em>食べたい？</em></h1></div></section>
     {pick && <TodayPick item={pick.item} reason={pick.reason} />}
     <section className="finder" aria-label="まかないを探す">
-      <label className="search-box"><Search /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="料理や食材で検索" aria-label="料理・お店・食材で検索" /></label>
+      <label className="search-box"><Search /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="料理や食材で検索" aria-label="料理・お店・食材・お手伝いで検索" /></label>
       <label className="area-select"><MapPin /><select value={area} onChange={e => setArea(e.target.value)} aria-label="エリア">{areas.map(a => <option key={a} value={a}>{a === 'すべてのエリア' ? '全エリア' : a}</option>)}</select></label>
       <button className={`map-button ${drawnIds ? 'active' : ''}`} onClick={() => setMapOpen(true)} aria-label="地図を囲ってエリア検索"><Map />{drawnIds && <b>{drawnIds.length}</b>}</button>
     </section>
     {drawnIds && <div className="drawn-chip"><span>地図で囲ったエリア：{drawnIds.length}件</span><button onClick={() => setDrawnIds(null)}>解除</button></div>}
-    <div className="category-scroll" aria-label="カテゴリー">{categories.map(c => <button key={c} className={category === c ? 'active' : ''} onClick={() => setCategory(c)}>{c}</button>)}</div>
+    <div className="category-scroll" role="group" aria-label="料理のカテゴリー">{categories.map(c => <button key={c} className={category === c ? 'active' : ''} aria-pressed={category === c} onClick={() => setCategory(c)}>{c}</button>)}</div>
+    <div className="kind-scroll" role="group" aria-label="お手伝いの種類"><span className="kind-scroll-label">お手伝い</span><button className={kind === 'すべて' ? 'active' : ''} aria-pressed={kind === 'すべて'} onClick={() => setKind('すべて')}>すべて</button>{kinds.map(k => <button key={k} className={kind === k ? 'active' : ''} aria-pressed={kind === k} onClick={() => setKind(k)}><KindIcon kind={k} />{k}</button>)}</div>
     <section className="list-section"><div className="section-heading"><div><span className="eyebrow">NEAR YOU</span><h2>{drawnIds ? '囲ったエリアのまかない' : area === 'すべてのエリア' ? '現在地からのおすすめ' : `${area}のまかない`}</h2><p className="near-note"><LocateFixed />三軒茶屋駅付近（デモの現在地）</p></div><span>{results.length}品</span></div>
       <div className="sort-row"><span>並び替え</span><div>{([['recommend','おすすめ順'],['rating','評価が高い順'],['distance','距離が近い順']] as const).map(([value,label]) => <button key={value} className={sort === value ? 'active' : ''} onClick={() => setSort(value)}>{label}</button>)}</div></div>
       <div className="dish-grid">{results.map(item => <DishCard key={item.id} item={item} />)}</div>
@@ -226,7 +231,7 @@ function StoreDetail() {
   if (!item) return <NotFound />
   const { help } = item
   const rows = [
-    [UtensilsCrossed, 'お手伝いの内容', help.role], [CalendarDays, '日時', jobWhen(item)], [Clock3, '時間', durationLabel(help.minutes)], [MapPin, '勤務場所', help.location], [Navigation, '現在地からのアクセス', `${item.access.route}（約${item.access.distance}）`], [UsersRound, '募集人数', `あと${help.remaining}名（全${help.slots}名）`]
+    [UtensilsCrossed, `お手伝いの内容（${help.kind ?? 'その他'}）`, help.role], [CalendarDays, '日時', jobWhen(item)], [Clock3, '時間', durationLabel(help.minutes)], [MapPin, '勤務場所', help.location], [Navigation, '現在地からのアクセス', `${item.access.route}（約${item.access.distance}）`], [UsersRound, '募集人数', `あと${help.remaining}名（全${help.slots}名）`]
   ] as const
   return <Shell back title="求人の詳細">
     <section className="store-hero"><Photo src={item.storeImage} alt={item.storeName} /><div className="store-hero-label"><span>このまかないのお店</span><h1>{item.storeName}</h1></div></section>
@@ -338,7 +343,16 @@ function MyPage() {
     <div className="stat-row"><Link to="/favorites"><b>{favorites.length}</b><span>お気に入り</span></Link><div><b>{active.length}</b><span>応募中</span></div><div><b>{completed.length}</b><span>食べた</span></div></div>
     <section className="mypage-section"><div className="section-heading"><h2>応募状況</h2></div>{active.length ? <div className="application-list">{active.map(({ app, item }) => <Link to={`/application/${app.id}`} className="application-card" key={app.id}><Photo src={item.dishImage} alt={item.dishName} /><div><span className={`status-chip status-${app.status}`}>{statusLabels[app.status]}</span><h3>{item.dishName}</h3><p>{item.storeName}</p></div><ChevronRight /></Link>)}</div> : <div className="small-empty"><p>応募中のお手伝いはありません。</p><Link to="/home">食べたいまかないを探す</Link></div>}</section>
     <section className="mypage-section"><div className="section-heading"><h2>食べたまかない</h2><span>{completed.length}皿</span></div>{completed.length ? <div className="eaten-grid">{completed.map(({ app, item }) => <Link to={`/application/${app.id}`} key={app.id}><Photo src={item.dishImage} alt={item.dishName} />{app.review?.again.includes('visit') && <em>また行きたい</em>}<span>{item.dishName}</span></Link>)}</div> : <div className="small-empty"><span className="bowl">🍚</span><p>お手伝いのあとに食べたまかないが、ここに並びます。</p></div>}</section>
-    <section className="mypage-section demo-tools"><Link to="/owner" className="secondary-button wide"><Store /> お店側の画面を見る（デモ）</Link><button className="text-button" onClick={resetDemo}>デモのデータを最初に戻す</button></section>
+    <section className="mypage-section demo-tools"><Link to="/owner" className="secondary-button wide"><Store /> お店側の画面を見る（デモ）</Link><button className="text-button" onClick={resetDemo}>デモのデータを最初に戻す</button><Link to="/credits" className="text-link">写真のクレジット</Link></section>
+  </section></Shell>
+}
+
+/** 写真の出典。ウィキメディア・コモンズの写真は、撮影者とライセンスの表示が条件 */
+function CreditsPage() {
+  const photos = makanaiItems.flatMap(item => [[item.dishImage, item.dishName], [item.storeImage, item.storeName]] as const)
+  return <Shell back title="写真のクレジット"><section className="simple-page credits-page">
+    <div className="page-title"><span className="eyebrow">PHOTO CREDITS</span><h1>写真のクレジット</h1><p>料理とお店の写真は、ウィキメディア・コモンズと Unsplash で公開されている写真を使っています。お店の名前やメニューは架空のもので、写真に写っているお店とは関係ありません。</p></div>
+    <ul className="credit-list">{photos.map(([src, label]) => { const credit = photoCredit(src); return <li key={src}><Photo src={src} alt={label} /><div><b>{label}</b>{credit.page ? <a href={credit.page} target="_blank" rel="noreferrer">{credit.title}<ExternalLink /></a> : <span>{credit.title}</span>}<small>{credit.artist}・{credit.licenseUrl ? <a href={credit.licenseUrl} target="_blank" rel="noreferrer">{credit.license}</a> : credit.license}</small></div></li> })}</ul>
   </section></Shell>
 }
 
@@ -354,6 +368,7 @@ function AppRoutes() {
     <Route path="/application/:applicationId" element={<ApplicationPage />} />
     <Route path="/favorites" element={<FavoritesPage />} />
     <Route path="/mypage" element={<MyPage />} />
+    <Route path="/credits" element={<CreditsPage />} />
     <Route path="/owner" element={<OwnerHome />} /><Route path="/owner/new" element={<OwnerNewJob />} /><Route path="/owner/applicants" element={<OwnerApplicants />} />
     <Route path="*" element={<NotFound />} />
   </Routes>

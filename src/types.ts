@@ -1,5 +1,7 @@
 export type Category = 'お肉' | '魚' | '麺類' | '定食' | 'カレー' | 'その他'
 
+export type HelpKind = '片付け' | '清掃' | '仕込み' | '接客' | '運ぶ' | '品出し' | '軽作業' | '試食' | '写真・SNS' | 'メニューづくり' | '花壇・庭' | 'イベント'
+
 /** まかないに使う、期限が近い食材。kg はこのお手伝い全員分のまかないで使う量 */
 export interface Ingredient {
   name: string
@@ -29,6 +31,7 @@ export interface MakanaiItem {
   /** お店側の画面でつくったばかりの求人 */
   fresh?: boolean
   help: {
+    kind: HelpKind
     role: string
     /** 開いた日から何日後か（0 = 今日） */
     dayOffset: number
