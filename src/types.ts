@@ -33,6 +33,8 @@ export interface MakanaiItem {
   help: {
     kind: HelpKind
     role: string
+    /** 何をするかの説明（1 文） */
+    detail?: string
     /** 開いた日から何日後か（0 = 今日） */
     dayOffset: number
     start: string

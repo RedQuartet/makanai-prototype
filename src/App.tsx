@@ -67,12 +67,12 @@ function DishCard({ item }: { item: MakanaiItem }) {
       <span className="category-pill">{item.category}</span>{!visitedStores.has(item.storeName) && <span className="first-pill"><Sparkles /> はじめてのお店</span>}<FavoriteButton id={item.id} light />
     </Link>
     <div className="dish-card-body">
-      <div className="card-meta"><div className="card-location"><MapPin />{item.area}</div><div className="access-time"><Navigation />現在地から {item.access.route}</div></div><h2>{item.dishName}</h2><div className="store-rating"><p className="store-name">{item.storeName}</p><span><Star fill="currentColor" />{item.rating.toFixed(1)} <small>({item.reviewCount}件)</small></span></div>
+      <div className="card-meta"><div className="card-location"><MapPin />{item.area}</div><div className="access-time"><Navigation />現在地から {item.access.route}</div></div><h2><Link to={`/makanai/${item.id}`}>{item.dishName}</Link></h2><div className="store-rating"><p className="store-name">{item.storeName}</p><span><Star fill="currentColor" />{item.rating.toFixed(1)} <small>({item.reviewCount}件)</small></span></div>
       <div className="job-chips"><span className="kind"><KindIcon kind={item.help.kind} />{item.help.kind}</span><span><CalendarDays />{jobWhen(item)}</span><span className="pay"><Coins />{payLine(item)}</span></div>
       {first && <p className="rescue-line"><Leaf />使う食材：期限間近の{first.name} {kg(first.kg)}{item.ingredients.length > 1 ? ' ほか' : ''}</p>}
       <p className="dish-description">{item.shortDescription}</p>
       <div className="tag-row">{item.tags.map(tag => <span key={tag}>#{tag}</span>)}</div>
-      <Link className="card-link" to={`/makanai/${item.id}`}>詳しく見る <ChevronRight /></Link>
+      <Link className="card-link" to={`/store/${item.id}`}><span><HandHelping />お手伝いをする</span><ChevronRight /></Link>
     </div>
   </article>
 }
@@ -226,18 +226,25 @@ function MakanaiDetail() {
   </Shell>
 }
 
+/** お手伝いの画面。何をするか → 当日の流れ → 条件 → お店、の順に見せる */
 function StoreDetail() {
   const item = useItem()
   if (!item) return <NotFound />
   const { help } = item
+  const steps = [
+    { icon: <MapPin />, title: `${dayLabel(jobDate(item))} ${help.start} にお店へ`, text: `${help.location}。開始10分前が目安です。` },
+    { icon: <KindIcon kind={help.kind} />, title: help.role, text: `${help.start}〜${endTime(help.start, help.minutes)}（${durationLabel(help.minutes)}）。${help.detail ?? ''}` },
+    { icon: <UtensilsCrossed />, title: `まかない「${item.dishName}」を食べる`, text: `無料。${help.mealCondition}。`, meal: true },
+    { icon: <Coins />, title: `給与 ${yen(wageOf(help))} を受け取る`, text: 'お手伝いのあと、MAKANAI がお店に代わって振り込みます。' },
+  ]
   const rows = [
-    [UtensilsCrossed, `お手伝いの内容（${help.kind ?? 'その他'}）`, help.role], [CalendarDays, '日時', jobWhen(item)], [Clock3, '時間', durationLabel(help.minutes)], [MapPin, '勤務場所', help.location], [Navigation, '現在地からのアクセス', `${item.access.route}（約${item.access.distance}）`], [UsersRound, '募集人数', `あと${help.remaining}名（全${help.slots}名）`]
+    [CalendarDays, '日時', jobWhen(item)], [MapPin, '勤務場所', help.location], [Navigation, '現在地からのアクセス', `${item.access.route}（約${item.access.distance}）`], [UsersRound, '募集人数', `あと${help.remaining}名（全${help.slots}名）`]
   ] as const
-  return <Shell back title="求人の詳細">
-    <section className="store-hero"><Photo src={item.storeImage} alt={item.storeName} /><div className="store-hero-label"><span>このまかないのお店</span><h1>{item.storeName}</h1></div></section>
+  return <Shell back title="お手伝いの内容">
+    <section className="help-hero"><Photo src={item.storeImage} alt={item.storeName} /><div className="help-hero-label"><span className="kind-badge"><KindIcon kind={help.kind} />{help.kind ?? 'その他'}のお手伝い</span><h1>{help.role}</h1><p><Store />{item.storeName}</p></div></section>
     <article className="detail-content">
-      <section className="store-intro"><span className="eyebrow">ABOUT THE SHOP</span><h2>お店について</h2><p className="lead">{item.storeDescription}</p><div className="atmosphere"><span>お店の雰囲気</span><p>{item.atmosphere}</p></div></section>
-      <section className="help-section"><span className="eyebrow">HELP & EAT</span><h2>お手伝いの内容</h2><p className="section-note">条件をよく確認してから応募してください。</p><div className="info-list">{rows.map(([Icon, label, value]) => <div className="info-row" key={label}><span className="info-icon"><Icon /></span><div><small>{label}</small><b>{value}</b></div></div>)}</div></section>
+      <section className="flow-section"><span className="eyebrow">HELP & EAT</span><h2>当日の流れ</h2><ol className="flow-list">{steps.map((step, i) => <li key={i} className={step.meal ? 'meal' : ''}><span>{step.icon}</span><div><b>{step.title}</b><small>{step.text}</small></div></li>)}</ol></section>
+      <section className="help-section"><h2>募集の条件</h2><div className="info-list">{rows.map(([Icon, label, value]) => <div className="info-row" key={label}><span className="info-icon"><Icon /></span><div><small>{label}</small><b>{value}</b></div></div>)}</div></section>
       <section className="reward-card">
         <div><span>給与</span><strong className="reward-big">{yen(wageOf(help))}</strong><small>時給 {yen(help.hourlyWage)} × {durationLabel(help.minutes)}（地域の最低賃金以上）</small></div>
         <div className="reward-sub"><span>交通費</span><strong>{help.transport}</strong></div>
@@ -245,6 +252,7 @@ function StoreDetail() {
         <div><span>まかない（無料）</span><strong>{item.dishName}</strong><small>{help.mealCondition}</small></div>
       </section>
       <section className="requirements"><h3>応募条件</h3><ul>{help.requirements.map(x => <li key={x}><Check />{x}</li>)}</ul></section>
+      <section className="store-intro bottom"><span className="eyebrow">ABOUT THE SHOP</span><h2>{item.storeName}について</h2><p className="lead">{item.storeDescription}</p><div className="atmosphere"><span>お店の雰囲気</span><p>{item.atmosphere}</p></div></section>
       <p className="legal-note">※ お店・給与・日時は体験用の仮データです。給与は地域の最低賃金以上で、まかないは給与とは別に無料で出ます。雇用契約はお店と結び、給与は MAKANAI がお店に代わって支払います。</p>
       <Link to={`/apply/${item.id}`} className="primary-button wide sticky-cta">この求人に応募する <ArrowRight /></Link>
     </article>
