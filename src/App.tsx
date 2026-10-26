@@ -355,12 +355,12 @@ function MyPage() {
   </section></Shell>
 }
 
-/** 写真の出典。ウィキメディア・コモンズの写真は、撮影者とライセンスの表示が条件 */
+/** 写真の出典（Unsplash） */
 function CreditsPage() {
   const photos = makanaiItems.flatMap(item => [[item.dishImage, item.dishName], [item.storeImage, item.storeName]] as const)
   return <Shell back title="写真のクレジット"><section className="simple-page credits-page">
-    <div className="page-title"><span className="eyebrow">PHOTO CREDITS</span><h1>写真のクレジット</h1><p>料理とお店の写真は、ウィキメディア・コモンズと Unsplash で公開されている写真を使っています。お店の名前やメニューは架空のもので、写真に写っているお店とは関係ありません。</p></div>
-    <ul className="credit-list">{photos.map(([src, label]) => { const credit = photoCredit(src); return <li key={src}><Photo src={src} alt={label} /><div><b>{label}</b>{credit.page ? <a href={credit.page} target="_blank" rel="noreferrer">{credit.title}<ExternalLink /></a> : <span>{credit.title}</span>}<small>{credit.artist}・{credit.licenseUrl ? <a href={credit.licenseUrl} target="_blank" rel="noreferrer">{credit.license}</a> : credit.license}</small></div></li> })}</ul>
+    <div className="page-title"><span className="eyebrow">PHOTO CREDITS</span><h1>写真のクレジット</h1><p>料理とお店の写真は、Unsplash で公開されている写真を使っています。お店の名前やメニューは架空のもので、写真に写っているお店とは関係ありません。</p></div>
+    <ul className="credit-list">{photos.map(([src, label]) => { const credit = photoCredit(src); return <li key={src}><Photo src={src} alt={label} /><div><b>{label}</b><span>Photo by {credit.artist}</span><small><a href={credit.licenseUrl} target="_blank" rel="noreferrer">{credit.license}<ExternalLink /></a></small></div></li> })}</ul>
   </section></Shell>
 }
 
