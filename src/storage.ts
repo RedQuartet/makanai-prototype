@@ -1,4 +1,4 @@
-import { demoHistory, ownerApplicantsSeed } from './data'
+import { demoHistory, makanaiItems, ownerApplicantsSeed } from './data'
 import type { Application, MakanaiItem, OwnerApplicant } from './types'
 
 const KEYS = {
@@ -22,6 +22,12 @@ function write(key: string, value: unknown) {
   try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* 保存できなくても画面は動かす */ }
 }
 
+/** 前の版で保存した求人を、今のデータの形にそろえる（お手伝いの種類・お店の写真） */
+function upgradeCustomItem(item: MakanaiItem): MakanaiItem {
+  const store = makanaiItems.find(x => x.storeName === item.storeName)
+  return { ...item, storeImage: store?.storeImage ?? item.storeImage, help: { ...item.help, kind: item.help.kind ?? '片付け' } }
+}
+
 export const storage = {
   hasVisited: () => read<boolean>(KEYS.visited, false),
   markVisited: () => write(KEYS.visited, true),
@@ -37,7 +43,7 @@ export const storage = {
     return seeded
   },
   setApplications: (applications: Application[]) => write(KEYS.applications, applications),
-  getCustomItems: () => read<MakanaiItem[]>(KEYS.customItems, []),
+  getCustomItems: () => read<MakanaiItem[]>(KEYS.customItems, []).map(upgradeCustomItem),
   setCustomItems: (items: MakanaiItem[]) => write(KEYS.customItems, items),
   getOwnerApplicants: () => read<OwnerApplicant[]>(KEYS.ownerApplicants, ownerApplicantsSeed),
   setOwnerApplicants: (applicants: OwnerApplicant[]) => write(KEYS.ownerApplicants, applicants),

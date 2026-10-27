@@ -1,11 +1,11 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, Bell, CalendarDays, Check, ChevronRight, Home, Leaf, Plus, UserRound, UsersRound, UtensilsCrossed } from 'lucide-react'
-import { categories, demoUser, minimumWage, ownerMonthBase, ownerPastReviews, ownerStock, ownerStoreId, rolePresets, statusLabels, transportOptions } from './data'
+import { categories, demoUser, helpKinds, minimumWage, ownerMonthBase, ownerPastReviews, ownerStock, ownerStoreId, rolePresets, statusLabels, transportOptions } from './data'
 import { useDemo } from './demo'
 import { dayLabel, durationLabel, endTime, feeOf, fromDateKey, jobWhen, kg, monthDay, rescuedPerPerson, wageOf, yen } from './format'
 import { Photo } from './ui'
-import type { ApplicationStatus, Category, MakanaiItem, Review, StockItem } from './types'
+import type { ApplicationStatus, Category, HelpKind, MakanaiItem, Review, StockItem } from './types'
 
 function OwnerShell({ children }: { children: ReactNode }) {
   return <div className="app-shell owner-shell">
@@ -129,7 +129,9 @@ export function OwnerNewJob() {
   const [picked, setPicked] = useState<string[]>(() => stock.filter(x => x.name === '豚バラ肉' || x.name === 'キャベツ').map(x => x.id))
   const [name, setName] = useState('')
   const [category, setCategory] = useState<Category>('定食')
-  const [role, setRole] = useState(rolePresets[0])
+  const [role, setRole] = useState(rolePresets[0].role)
+  const [kind, setKind] = useState<HelpKind>(rolePresets[0].kind)
+  const [detail, setDetail] = useState(rolePresets[0].detail)
   const [dayOffset, setDayOffset] = useState(0)
   const [start, setStart] = useState('15:00')
   const [minutes, setMinutes] = useState(60)
@@ -154,7 +156,7 @@ export function OwnerNewJob() {
       recommendation: ['期限間近の食材を使い切る一皿', 'お手伝いのあとに、できたてを提供', 'ご飯とお味噌汁つき'],
       tags: ['新着', 'フードロス削減', 'できたて'],
       ingredients: chosen.map(x => ({ name: x.name, kg: x.kg, daysLeft: x.daysLeft })),
-      help: { role: role.trim(), dayOffset, start, minutes, location: store.help.location, hourlyWage, transport, mealCondition: 'お手伝い終了後、店内で提供', slots, remaining: slots, requirements: ['18歳以上', '特別な経験は不要', '食物アレルギーは事前申告'] }
+      help: { kind, role: role.trim(), detail: detail.trim() || undefined, dayOffset, start, minutes, location: store.help.location, hourlyWage, transport, mealCondition: 'お手伝い終了後、店内で提供', slots, remaining: slots, requirements: ['18歳以上', '特別な経験は不要', '食物アレルギーは事前申告'] }
     }
     publishJob(item, picked)
     navigate('/owner', { state: { created: item.dishName } })
@@ -174,7 +176,9 @@ export function OwnerNewJob() {
 
     <fieldset className="form-step"><legend><b>3</b>お手伝いの条件を決める</legend>
       <label className="field" htmlFor="job-role"><span>お手伝いの内容</span><input id="job-role" value={role} maxLength={30} onChange={e => setRole(e.target.value)} /></label>
-      <div className="idea-row">{rolePresets.map(preset => <button type="button" key={preset} className={role === preset ? 'on' : ''} onClick={() => setRole(preset)}>{preset}</button>)}</div>
+      <div className="idea-row">{rolePresets.map(preset => <button type="button" key={preset.role} className={role === preset.role ? 'on' : ''} onClick={() => { setRole(preset.role); setKind(preset.kind); setDetail(preset.detail) }}>{preset.role}</button>)}</div>
+      <label className="field" htmlFor="job-detail"><span>何をするか（学生に見せる説明）</span><textarea id="job-detail" rows={2} value={detail} maxLength={60} onChange={e => setDetail(e.target.value)} /></label>
+      <label className="field" htmlFor="job-kind"><span>お手伝いの種類（学生側の絞り込みに使います）</span><select id="job-kind" value={kind} onChange={e => setKind(e.target.value as HelpKind)}>{helpKinds.map(k => <option key={k}>{k}</option>)}</select></label>
       <div className="field"><span>日にち</span><div className="segmented" role="group" aria-label="日にち">{['今日', '明日', 'あさって'].map((label, i) => <button type="button" key={label} className={dayOffset === i ? 'on' : ''} aria-pressed={dayOffset === i} onClick={() => setDayOffset(i)}>{label}</button>)}</div></div>
       <div className="field-row">
         <label className="field" htmlFor="job-start"><span>開始時刻</span><input id="job-start" type="time" step={900} value={start} onChange={e => setStart(e.target.value)} /></label>
