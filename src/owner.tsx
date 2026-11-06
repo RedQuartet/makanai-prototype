@@ -11,6 +11,11 @@ function OwnerShell({ children }: { children: ReactNode }) {
   return <div className="app-shell owner-shell">
     <header className="app-header owner-header">
       <Link to="/owner" className="logo compact" aria-label="お店のホームへ"><span className="logo-mark"><UtensilsCrossed /></span><span>MAKANAI</span><small className="owner-badge">お店用</small></Link>
+      <nav className="top-nav" aria-label="お店のメニュー">
+        <NavLink to="/owner" end><Home />ホーム</NavLink>
+        <NavLink to="/owner/new"><Plus />求人をつくる</NavLink>
+        <NavLink to="/owner/applicants"><UsersRound />応募者</NavLink>
+      </nav>
       <Link to="/home" className="switch-link"><UserRound /> 学生側へ</Link>
     </header>
     <main>{children}</main>

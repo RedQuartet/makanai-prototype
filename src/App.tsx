@@ -18,8 +18,18 @@ function AppHeader({ back, title }: { back?: boolean; title?: string }) {
   return <header className="app-header">
     {back ? <button className="icon-button" onClick={() => navigate(-1)} aria-label="戻る"><ArrowLeft /></button> : <Logo compact />}
     {title && <strong>{title}</strong>}
+    <TopNav />
     <Link to="/mypage" className="avatar-mini" aria-label="マイページ">{user.initial}</Link>
   </header>
+}
+
+/** 大きい画面（ブラウザ・発表用）では、下のタブの代わりにヘッダーにメニューを出す */
+function TopNav() {
+  return <nav className="top-nav" aria-label="メインナビゲーション">
+    <NavLink to="/home"><Home />見つける</NavLink>
+    <NavLink to="/favorites"><Heart />お気に入り</NavLink>
+    <NavLink to="/mypage"><UserRound />マイページ</NavLink>
+  </nav>
 }
 
 function BottomNav() {
@@ -142,7 +152,8 @@ function AreaDrawModal({ onClose, onApply }: { onClose: () => void; onApply: (id
     return { x: (event.clientX - rect.left) * 360 / rect.width, y: (event.clientY - rect.top) * 280 / rect.height }
   }
   const start = (event: ReactPointerEvent<SVGSVGElement>) => { event.currentTarget.setPointerCapture(event.pointerId); setPoints([getPoint(event)]); setDrawing(true) }
-  const move = (event: ReactPointerEvent<SVGSVGElement>) => { if (drawing) setPoints(prev => [...prev, getPoint(event)]) }
+  // 位置は先に読んでおく（setPoints の中で読むと、イベントが終わったあとで currentTarget が空になっている）
+  const move = (event: ReactPointerEvent<SVGSVGElement>) => { if (!drawing) return; const point = getPoint(event); setPoints(prev => [...prev, point]) }
   const end = () => setDrawing(false)
   const preset = (name: 'tokyo' | 'south') => setPoints(name === 'tokyo'
     ? [{x:52,y:82},{x:230,y:73},{x:252,y:192},{x:120,y:211},{x:47,y:165}]
@@ -260,7 +271,7 @@ function PastViewer({ past, index, onMove, onClose }: { past: PastMakanai[]; ind
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [index, last, onMove, onClose])
-  // 詳細画面の中は重なり順が区切られているので、body の直下に出してヘッダーやタブの上に重ねる
+  // 詳細画面の中は重なり順が区切られているので、#overlay-root に出してヘッダーやタブの上に重ねる（#root は React が使うので入れない）
   return createPortal(<div className="past-viewer-backdrop" onClick={onClose}>
     <div className="past-viewer" role="dialog" aria-modal="true" aria-label={p.name} onClick={e => e.stopPropagation()}>
       <div className="past-viewer-photo"><Photo src={p.image} alt={p.name} /><button type="button" className="past-close" onClick={onClose} aria-label="閉じる"><X /></button><span className="past-count">{index + 1} / {past.length}</span></div>
@@ -272,7 +283,7 @@ function PastViewer({ past, index, onMove, onClose }: { past: PastMakanai[]; ind
         <div className="past-nav"><button type="button" disabled={index === 0} onClick={() => onMove(index - 1)}><ChevronLeft />前へ</button><button type="button" disabled={index === last} onClick={() => onMove(index + 1)}>次へ<ChevronRight /></button></div>
       </div>
     </div>
-  </div>, document.body)
+  </div>, document.getElementById('overlay-root') ?? document.body)
 }
 
 function MakanaiDetail() {

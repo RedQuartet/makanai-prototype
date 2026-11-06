@@ -140,3 +140,54 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { 
 .past-chips { display:flex; flex-wrap:wrap; gap:6px; }.past-chips span { display:inline-flex; align-items:center; gap:4px; border-radius:99px; padding:4px 10px; font-size:11px; font-weight:800; }.past-chips svg { width:14px; }.past-chips .help { background:var(--green); color:#4f6b47; }.past-chips .buy { background:#fff1dc; color:#8a5a22; }
 .past-voice { margin:14px 0 0; background:#f5e8dc; border-radius:16px; padding:12px 14px; }.past-voice span { display:flex; align-items:center; gap:5px; font-size:10px; font-weight:800; color:var(--coral); }.past-voice svg { width:13px; }.past-voice p { margin:4px 0 0; font-size:13px; line-height:1.7; }
 .past-nav { display:flex; justify-content:space-between; margin-top:14px; }.past-nav button { display:inline-flex; align-items:center; gap:2px; border:1px solid #e1cfbf; background:white; color:var(--brown); border-radius:99px; padding:8px 14px; font-size:12px; font-weight:700; cursor:pointer; }.past-nav button:disabled { opacity:.35; cursor:default; }.past-nav svg { width:16px; }
+/* ---- 大きい画面（ブラウザ・発表用）：全体を拡大して文字を大きくし、横に広いレイアウトにする ----
+   zoom の中では vh も拡大されるので、高さは 100vh / var(--z) で計算する */
+.top-nav { display:none; }
+@media (min-width:1024px) {
+  :root { --z:1.25; }
+  body { padding:0; }
+  #root { zoom:var(--z); min-height:calc(100vh / var(--z)); }
+  #overlay-root { zoom:var(--z); }
+  .app-shell { max-width:none; min-height:calc(100vh / var(--z)); border-radius:0; overflow:visible; box-shadow:none; }
+  .app-header { top:0; height:60px; gap:18px; justify-content:flex-start; padding:0 max(24px, calc((100% - 1040px) / 2)); border-bottom:1px solid rgba(107,56,40,.07); }
+  .app-header > strong { font-size:16px; }
+  .top-nav { display:flex; gap:4px; margin-left:auto; }
+  .top-nav a { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:99px; font-size:13px; font-weight:700; color:#8f7b70; }
+  .top-nav a:hover { color:var(--brown); }
+  .top-nav a svg { width:17px; height:17px; }
+  .top-nav a.active { background:#f4e9dd; color:var(--brown); }
+  .bottom-nav { display:none; }
+  .app-shell > main { max-width:1088px; margin:0 auto; padding:0 24px 48px; }
+  .sticky-cta,.sticky-choice { bottom:20px; }
+
+  /* ホーム：カードを 2〜3 列に */
+  .home-intro { padding-top:32px; }
+  .dish-grid { grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:22px; align-items:start; }
+
+  /* まかないの詳細・お手伝いの内容：写真を左に固定し、説明を右に */
+  .app-shell > main:has(> .hero-photo),.app-shell > main:has(> .help-hero) { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:36px; align-items:start; padding-top:24px; }
+  .hero-photo,.help-hero { position:sticky; top:84px; height:calc(100vh / var(--z) - 108px); min-height:320px; border-radius:28px; overflow:hidden; }
+  .detail-content.overlap { margin-top:0; border-radius:0; background:transparent; }
+  main:has(> .hero-photo) > .detail-content,main:has(> .help-hero) > .detail-content { padding-top:4px; }
+
+  /* 確認・予約・マイページ・お店のフォーム：読みやすい幅で中央に */
+  .confirm-page,.completion-page,.mypage,.simple-page,.owner-form { max-width:720px; margin-left:auto; margin-right:auto; }
+  .kpi-grid { grid-template-columns:repeat(3,1fr); }
+
+  /* タイトル画面 */
+  .welcome { max-width:none; min-height:calc(100dvh / var(--z)); border-radius:0; box-shadow:none; justify-content:center; }
+  .welcome-brand,.welcome-actions { width:min(560px,100%); margin-left:auto; margin-right:auto; }
+
+  /* 地図で囲む・写真の拡大：画面の中央に出す */
+  .map-modal-backdrop { align-items:center; }
+  .map-modal { width:min(620px,100%); border-radius:28px; max-height:calc(96dvh / var(--z)); }
+  .draw-map-wrap { width:min(100%, calc((96dvh / var(--z) - 270px) * 360 / 280)); margin:0 auto; }
+  .past-viewer { width:min(880px,100%); max-height:calc(100dvh / var(--z) - 40px); display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); }
+  .past-viewer-photo img,.past-viewer-photo .photo-fallback { aspect-ratio:auto; height:100%; min-height:340px; }
+  .past-viewer-body { display:flex; flex-direction:column; padding:28px 26px 24px; }
+  .past-viewer-body .past-nav { margin-top:auto; padding-top:16px; }
+}
+@media (min-width:1280px) { :root { --z:1.45; } }
+@media (min-width:1600px) { :root { --z:1.65; } }
+@media (min-width:1900px) { :root { --z:1.85; } }
+@media (min-width:2500px) { :root { --z:2.4; } }
