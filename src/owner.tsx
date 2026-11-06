@@ -11,6 +11,11 @@ function OwnerShell({ children }: { children: ReactNode }) {
   return <div className="app-shell owner-shell">
     <header className="app-header owner-header">
       <Link to="/owner" className="logo compact" aria-label="お店のホームへ"><span className="logo-mark"><UtensilsCrossed /></span><span>MAKANAI</span><small className="owner-badge">お店用</small></Link>
+      <nav className="top-nav" aria-label="お店のメニュー">
+        <NavLink to="/owner" end><Home />ホーム</NavLink>
+        <NavLink to="/owner/new"><Plus />求人をつくる</NavLink>
+        <NavLink to="/owner/applicants"><UsersRound />応募者</NavLink>
+      </nav>
       <Link to="/home" className="switch-link"><UserRound /> 学生側へ</Link>
     </header>
     <main>{children}</main>
@@ -68,7 +73,7 @@ export function OwnerHome() {
     <section className="owner-intro"><span className="hello">{monthDay(new Date())}・今日もおつかれさまです</span><h1>{store.storeName}</h1><p>{store.area}</p></section>
     {created && <div className="owner-toast" role="status"><Check /><span>「{created}」の求人を掲載しました。学生側のホームに表示されます。<Link to="/home">学生側で見る</Link></span></div>}
     {waiting > 0 && <Link to="/owner/applicants" className="owner-alert"><Bell /><span>確認待ちの応募が <b>{waiting}件</b> あります</span><ChevronRight /></Link>}
-    {reserved.length > 0 && <div className="owner-alert buy"><Ticket /><span>まかないの予約が <b>{reserved.length}件</b>（{reserved.map(o => `${demoUser.name} さん・${saleWhen(o.item)}`).join('、')}）</span></div>}
+    {reserved.length > 0 && <div className="owner-alert buy"><Ticket /><span>まかないの予約が <b>{reserved.length}件</b>・支払い済み（{reserved.map(o => `${demoUser.name} さん・${saleWhen(o.item)}`).join('、')}）</span></div>}
     <section className="owner-section">
       <div className="section-heading"><div><span className="eyebrow">THIS MONTH</span><h2>今月の実績</h2></div><span>デモの数値</span></div>
       <div className="kpi-grid">
@@ -76,7 +81,7 @@ export function OwnerHome() {
         <div className="kpi"><small>来てくれた人</small><b>{ownerMonthBase.visitors + done.length}<i>人</i></b><span>お手伝いが完了した人</span></div>
         <div className="kpi"><small>また行きたい</small><b>{againRate}<i>%</i></b><span>レビュー {reviewCount}件のうち</span></div>
         <div className="kpi"><small>MAKANAI へのお支払い</small><b>{yen(wages + fees)}</b><span>給与 {yen(wages)} ＋ 利用料 {yen(fees)}</span></div>
-        <div className="kpi"><small>安く売ったまかない</small><b>{ownerMonthBase.sold + sold.length}<i>食</i></b><span>売上 {yen(sales)}</span></div>
+        <div className="kpi"><small>安く売ったまかない</small><b>{ownerMonthBase.sold + sold.length}<i>食</i></b><span>売上 {yen(sales)}（MAKANAI から入金）</span></div>
         <div className="kpi"><small>今日の予約</small><b>{reserved.length}<i>件</i></b><span>手伝わずに食べに来る人</span></div>
       </div>
     </section>
@@ -216,7 +221,7 @@ export function OwnerNewJob() {
           <label className="field" htmlFor="sale-from"><span>受け取り（から）</span><input id="sale-from" type="time" step={900} value={saleFrom} onChange={e => setSaleFrom(e.target.value)} /></label>
           <label className="field" htmlFor="sale-until"><span>受け取り（まで）</span><input id="sale-until" type="time" step={900} value={saleUntil} onChange={e => setSaleUntil(e.target.value)} /></label>
         </div>
-        <p className="form-note">学生はアプリで予約して、お店で支払います。売れた分はお店の売上になります。「通常○円→半額」のような表示は使わず、まかない価格だけを出します。</p>
+        <p className="form-note">学生はアプリで予約と支払いをします。代金は MAKANAI がお店に代わって受け取り、学生が「受け取った」と報告したあと、お店の売上として振り込みます。お店で現金のやりとりはありません。「通常○円→半額」のような表示は使わず、まかない価格だけを出します。</p>
       </>}
     </fieldset>
 

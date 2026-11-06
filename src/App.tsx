@@ -18,8 +18,18 @@ function AppHeader({ back, title }: { back?: boolean; title?: string }) {
   return <header className="app-header">
     {back ? <button className="icon-button" onClick={() => navigate(-1)} aria-label="戻る"><ArrowLeft /></button> : <Logo compact />}
     {title && <strong>{title}</strong>}
+    <TopNav />
     <Link to="/mypage" className="avatar-mini" aria-label="マイページ">{user.initial}</Link>
   </header>
+}
+
+/** 大きい画面（ブラウザ・発表用）では、下のタブの代わりにヘッダーにメニューを出す */
+function TopNav() {
+  return <nav className="top-nav" aria-label="メインナビゲーション">
+    <NavLink to="/home"><Home />見つける</NavLink>
+    <NavLink to="/favorites"><Heart />お気に入り</NavLink>
+    <NavLink to="/mypage"><UserRound />マイページ</NavLink>
+  </nav>
 }
 
 function BottomNav() {
@@ -142,7 +152,8 @@ function AreaDrawModal({ onClose, onApply }: { onClose: () => void; onApply: (id
     return { x: (event.clientX - rect.left) * 360 / rect.width, y: (event.clientY - rect.top) * 280 / rect.height }
   }
   const start = (event: ReactPointerEvent<SVGSVGElement>) => { event.currentTarget.setPointerCapture(event.pointerId); setPoints([getPoint(event)]); setDrawing(true) }
-  const move = (event: ReactPointerEvent<SVGSVGElement>) => { if (drawing) setPoints(prev => [...prev, getPoint(event)]) }
+  // 位置は先に読んでおく（setPoints の中で読むと、イベントが終わったあとで currentTarget が空になっている）
+  const move = (event: ReactPointerEvent<SVGSVGElement>) => { if (!drawing) return; const point = getPoint(event); setPoints(prev => [...prev, point]) }
   const end = () => setDrawing(false)
   const preset = (name: 'tokyo' | 'south') => setPoints(name === 'tokyo'
     ? [{x:52,y:82},{x:230,y:73},{x:252,y:192},{x:120,y:211},{x:47,y:165}]
@@ -260,7 +271,7 @@ function PastViewer({ past, index, onMove, onClose }: { past: PastMakanai[]; ind
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [index, last, onMove, onClose])
-  // 詳細画面の中は重なり順が区切られているので、body の直下に出してヘッダーやタブの上に重ねる
+  // 詳細画面の中は重なり順が区切られているので、#overlay-root に出してヘッダーやタブの上に重ねる（#root は React が使うので入れない）
   return createPortal(<div className="past-viewer-backdrop" onClick={onClose}>
     <div className="past-viewer" role="dialog" aria-modal="true" aria-label={p.name} onClick={e => e.stopPropagation()}>
       <div className="past-viewer-photo"><Photo src={p.image} alt={p.name} /><button type="button" className="past-close" onClick={onClose} aria-label="閉じる"><X /></button><span className="past-count">{index + 1} / {past.length}</span></div>
@@ -272,7 +283,7 @@ function PastViewer({ past, index, onMove, onClose }: { past: PastMakanai[]; ind
         <div className="past-nav"><button type="button" disabled={index === 0} onClick={() => onMove(index - 1)}><ChevronLeft />前へ</button><button type="button" disabled={index === last} onClick={() => onMove(index + 1)}>次へ<ChevronRight /></button></div>
       </div>
     </div>
-  </div>, document.body)
+  </div>, document.getElementById('overlay-root') ?? document.body)
 }
 
 function MakanaiDetail() {
@@ -291,7 +302,7 @@ function MakanaiDetail() {
       <section className="recommend-box"><span className="mini-title"><Sparkles /> おすすめポイント</span>{item.recommendation.map((point, i) => <div className="recommend-row" key={point}><b>0{i + 1}</b><span>{point}</span></div>)}</section>
       <PastMakanaiBox storeName={item.storeName} />
       <section className="ways-box"><h2>食べ方を選ぶ</h2>
-        {item.sale && <div className="way-row"><span className="way-icon buy"><ShoppingBag /></span><div><b>安く食べる　{yen(item.sale.price)}</b><small>{saleWhen(item)}・店内で・のこり{item.sale.remaining}食</small><small>お支払いはお店で</small></div></div>}
+        {item.sale && <div className="way-row"><span className="way-icon buy"><ShoppingBag /></span><div><b>安く食べる　{yen(item.sale.price)}</b><small>{saleWhen(item)}・店内で・のこり{item.sale.remaining}食</small><small>お支払いはアプリで。MAKANAI がお店に代わって受け取ります</small></div></div>}
         <div className="way-row"><span className="way-icon"><KindIcon kind={item.help.kind} /></span><div><b>手伝って食べる　給与 {yen(wageOf(item.help))} ＋ まかない無料</b><small>{jobWhen(item)}・{item.help.kind}のお手伝い（{durationLabel(item.help.minutes)}）</small><small>まかないは給与とは別に、無料でつきます</small></div></div>
         {!item.sale && <p className="way-note">このまかないは、手伝った人だけが食べられます。</p>}
       </section>
@@ -360,7 +371,7 @@ function ApplyConfirm() {
   </article></Shell>
 }
 
-/** 安く買う予約の確認。お支払いはお店で */
+/** 安く買う予約の確認。代金はアプリで払い、MAKANAI がお店に代わって受け取る */
 function BuyConfirm() {
   const { applications, order } = useDemo()
   const navigate = useNavigate()
@@ -376,11 +387,12 @@ function BuyConfirm() {
       <div><span>受け取り</span><b>{saleWhen(item)}</b></div>
       <div><span>食べる場所</span><b>店内（{item.help.location}）</b></div>
       <div><span>まかない価格</span><b>{yen(sale.price)}</b></div>
-      <div><span>お支払い</span><b>お店で（現金・キャッシュレス）</b></div>
+      <div><span>お支払い</span><b>アプリで（登録したカード）。MAKANAI がお店に代わって受け取ります</b></div>
+      <div><span>受け取ったら</span><b>アプリで「受け取った」を押すと、代金がお店に渡ります</b></div>
       <div><span>使う食材</span><b>期限間近の{ingredientList(item)}</b></div>
     </div>
-    <div className="notice-box"><strong>予約の前にご確認ください</strong><ul><li>これは体験用プロトタイプで、実際の店舗へ通知されません。</li><li>まかないは数に限りがあり、のこり{sale.remaining}食です。</li><li>時間内に行けなくなったら、アプリから予約をやめてください。</li></ul></div>
-    {active ? <Link className="primary-button wide" to={`/order/${active.id}`}>予約を見る <ArrowRight /></Link> : <button className="primary-button wide" onClick={submit}>予約する <ArrowRight /></button>}
+    <div className="notice-box"><strong>予約の前にご確認ください</strong><ul><li>これは体験用プロトタイプで、実際の店舗へ通知されません。</li><li>まかないは数に限りがあり、のこり{sale.remaining}食です。</li><li>行けなくなったら、アプリから予約をやめてください。受け取りの時間が始まる前なら、全額を返金します。</li><li>お店でお金を払う必要はありません。</li></ul></div>
+    {active ? <Link className="primary-button wide" to={`/order/${active.id}`}>予約を見る <ArrowRight /></Link> : <button className="primary-button wide" onClick={submit}>{yen(sale.price)}を支払って予約する <ArrowRight /></button>}
     <p className="agreement">ボタンを押すことで、上記の内容に同意したものとします。</p>
   </article></Shell>
 }
@@ -400,17 +412,17 @@ function OrderPage() {
   const date = app.jobDate ? fromDateKey(app.jobDate) : jobDate(item)
   const when = item.sale ? `${dayLabel(date)} ${item.sale.from}〜${item.sale.until}` : dayLabel(date)
   const eaten = app.status === 4
-  const stop = () => { if (window.confirm('この予約をやめますか？')) { cancel(app.id); navigate('/mypage', { replace: true }) } }
+  const stop = () => { if (window.confirm(`この予約をやめますか？ 支払った ${yen(item.sale?.price ?? 0)} は返金されます。`)) { cancel(app.id); navigate('/mypage', { replace: true }) } }
   return <Shell back title="予約"><article className="completion-page">
     <div className={`completion-icon ${eaten ? 'status-4' : 'status-2'}`}>{eaten ? '🍽️' : <Ticket />}</div><span className="eyebrow">YOUR MAKANAI</span>
     <h1>{eaten ? 'まかないを食べました！' : '予約しました！'}</h1>
-    <p>{eaten ? (app.review ? 'レビューはお店に届きました。また会いに行きましょう。' : 'おいしかったら、ひと言レビューを送りましょう。') : `${when}にお店へ。「MAKANAI で予約した${user.name.split(' ')[0]}です」と伝えてください。`}</p>
+    <p>{eaten ? (app.review ? 'レビューはお店に届きました。また会いに行きましょう。' : '受け取りを報告しました。代金は MAKANAI からお店に渡ります。おいしかったら、ひと言レビューを送りましょう。') : `${when}にお店へ。お支払いは済んでいます。この画面を見せて「MAKANAI で予約した${user.name.split(' ')[0]}です」と伝えてください。`}</p>
     <div className="application-summary"><Photo src={item.dishImage} alt={item.dishName} /><div><small>{item.storeName}</small><strong>{item.dishName}</strong><span><CalendarDays />{when}</span></div></div>
-    {!eaten && <div className="order-ticket"><div><span>お支払い（お店で）</span><b>{yen(item.sale?.price ?? 0)}</b></div><div><span>場所</span><b>{item.help.location}</b></div></div>}
+    {!eaten && <div className="order-ticket"><div><span>お支払い済み（アプリ）</span><b>{yen(item.sale?.price ?? 0)}</b></div><div><span>場所</span><b>{item.help.location}</b></div></div>}
     {eaten && <div className="rescue-result"><Leaf /><div><b>{kg(rescuedPerPerson(item))} の食材を救いました</b><span>期限間近の{item.ingredients.map(x => x.name).join('・')}を使ったまかないでした</span></div></div>}
     {eaten && (app.review ? <ReviewDone application={app} labels={buyerAgainLabels} /> : <ReviewForm applicationId={app.id} placeholder={`例：${item.dishName}、最高でした！`} labels={buyerAgainLabels} />)}
     {eaten && <HelpNudge item={item} />}
-    {!eaten && <><button className="primary-button wide" onClick={() => setStatus(app.id, 4)}>デモ：お店で食べた <ArrowRight /></button><button className="text-button" onClick={stop}>予約をやめる</button></>}
+    {!eaten && <><button className="primary-button wide" onClick={() => setStatus(app.id, 4)}>まかないを受け取った <ArrowRight /></button><p className="agreement">お店で受け取ったら押してください。押すと、代金がお店に渡ります。</p><button className="text-button" onClick={stop}>予約をやめる</button></>}
     {eaten && <Link to="/mypage" className="primary-button wide">マイページで記録を見る <ArrowRight /></Link>}
     <Link to="/home" className="text-link">ほかのまかないを探す</Link>
   </article></Shell>
