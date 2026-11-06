@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Routes, Route, Link, NavLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, Coins, ExternalLink, HandHelping, Heart, Home, Leaf, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, ShoppingBag, Sparkles, Star, Store, Ticket, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronLeft, ChevronRight, Clock3, Coins, ExternalLink, HandHelping, Heart, Home, Images, Leaf, LocateFixed, Map, MapPin, Navigation, Quote, RotateCcw, Search, ShoppingBag, Sparkles, Star, Store, Ticket, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
 import { photoCredit } from './credits'
-import { areas, categories, demoUser as user, helpKinds, makanaiItems, statusLabels } from './data'
+import { areas, categories, demoUser as user, helpKinds, makanaiItems, statusLabels, storeHistory } from './data'
 import { DemoProvider, isBuy, useDemo } from './demo'
-import { dayLabel, durationLabel, endTime, fromDateKey, ingredientList, jobDate, jobWhen, kg, rescuedPerPerson, saleWhen, toDateKey, totalKg, wageOf, yen } from './format'
+import { addDays, dayLabel, durationLabel, endTime, fromDateKey, ingredientList, jobDate, jobWhen, kg, rescuedPerPerson, saleWhen, toDateKey, totalKg, wageOf, yen } from './format'
 import { OwnerApplicants, OwnerHome, OwnerNewJob } from './owner'
 import { storage } from './storage'
 import { KindIcon, Logo, Photo } from './ui'
-import type { Again, Application, ApplicationStatus, Category, HelpKind, MakanaiItem } from './types'
+import type { Again, Application, ApplicationStatus, Category, HelpKind, MakanaiItem, PastMakanai } from './types'
 
 const payLine = (item: MakanaiItem) => `給与 ${yen(wageOf(item.help))} ＋ まかない無料`
 
@@ -226,6 +227,55 @@ function useItem() {
   return items.find(x => x.id === id)
 }
 
+/** 何日前かを「10月31日」の形に（去年なら年もつける） */
+function pastDay(daysAgo: number, today = new Date()) {
+  const date = addDays(today, -daysAgo)
+  return `${date.getFullYear() === today.getFullYear() ? '' : `${date.getFullYear()}年`}${date.getMonth() + 1}月${date.getDate()}日`
+}
+
+/** 一覧で小さく見せる写真は、軽い大きさで読みこむ */
+const thumb = (src: string) => src.replace('w=1200', 'w=360')
+
+/** お店がこれまでに出したまかない。写真で、どんなまかないが出るお店かを思いうかべてもらう */
+function PastMakanaiBox({ storeName }: { storeName: string }) {
+  const history = storeHistory[storeName]
+  const [open, setOpen] = useState<number | null>(null)
+  if (!history) return null
+  return <section className="past-box">
+    <span className="mini-title"><Images /> このお店のこれまでのまかない</span>
+    <p className="past-stats">これまでに <b>{history.times}</b> 回、のべ <b>{history.students}</b> 人の学生が食べました</p>
+    <div className="past-scroll">{history.past.map((p, i) => <button type="button" className="past-card" key={p.name} onClick={() => setOpen(i)} aria-label={`${p.name}の写真を大きく見る`}><Photo src={thumb(p.image)} alt={p.name} /><b>{p.name}</b><small>{p.occasion ?? pastDay(p.daysAgo)}</small></button>)}</div>
+    {open !== null && <PastViewer past={history.past} index={open} onMove={setOpen} onClose={() => setOpen(null)} />}
+  </section>
+}
+
+function PastViewer({ past, index, onMove, onClose }: { past: PastMakanai[]; index: number; onMove: (index: number) => void; onClose: () => void }) {
+  const p = past[index]
+  const last = past.length - 1
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft' && index > 0) onMove(index - 1)
+      if (e.key === 'ArrowRight' && index < last) onMove(index + 1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [index, last, onMove, onClose])
+  // 詳細画面の中は重なり順が区切られているので、body の直下に出してヘッダーやタブの上に重ねる
+  return createPortal(<div className="past-viewer-backdrop" onClick={onClose}>
+    <div className="past-viewer" role="dialog" aria-modal="true" aria-label={p.name} onClick={e => e.stopPropagation()}>
+      <div className="past-viewer-photo"><Photo src={p.image} alt={p.name} /><button type="button" className="past-close" onClick={onClose} aria-label="閉じる"><X /></button><span className="past-count">{index + 1} / {past.length}</span></div>
+      <div className="past-viewer-body">
+        <small>{p.occasion ? `${p.occasion}・${pastDay(p.daysAgo)}` : pastDay(p.daysAgo)}</small>
+        <h2>{p.name}</h2>
+        <div className="past-chips"><span className="help"><HandHelping />手伝って食べた {p.helped}人</span>{p.bought > 0 && <span className="buy"><ShoppingBag />安く食べた {p.bought}人</span>}</div>
+        <div className="past-voice"><span><Quote /> 食べた学生のひとこと</span><p>{p.voice}</p></div>
+        <div className="past-nav"><button type="button" disabled={index === 0} onClick={() => onMove(index - 1)}><ChevronLeft />前へ</button><button type="button" disabled={index === last} onClick={() => onMove(index + 1)}>次へ<ChevronRight /></button></div>
+      </div>
+    </div>
+  </div>, document.body)
+}
+
 function MakanaiDetail() {
   const { visitedStores } = useDemo()
   const item = useItem()
@@ -240,6 +290,7 @@ function MakanaiDetail() {
         <p>合計 {kg(totalKg(item))}。使い切れずに捨てられるはずだった食材を、まかないにして食べきります。</p>
       </section>
       <section className="recommend-box"><span className="mini-title"><Sparkles /> おすすめポイント</span>{item.recommendation.map((point, i) => <div className="recommend-row" key={point}><b>0{i + 1}</b><span>{point}</span></div>)}</section>
+      <PastMakanaiBox storeName={item.storeName} />
       <section className="ways-box"><h2>食べ方を選ぶ</h2>
         {item.sale && <div className="way-row"><span className="way-icon buy"><ShoppingBag /></span><div><b>安く食べる　{yen(item.sale.price)}</b><small>{saleWhen(item)}・店内で・のこり{item.sale.remaining}食</small><small>お支払いはお店で</small></div></div>}
         <div className="way-row"><span className="way-icon"><KindIcon kind={item.help.kind} /></span><div><b>手伝って食べる　給与 {yen(wageOf(item.help))} ＋ まかない無料</b><small>{jobWhen(item)}・{item.help.kind}のお手伝い（{durationLabel(item.help.minutes)}）</small><small>まかないは給与とは別に、無料でつきます</small></div></div>
@@ -277,7 +328,7 @@ function StoreDetail() {
         <div><span>まかない（無料）</span><strong>{item.dishName}</strong><small>{help.mealCondition}</small></div>
       </section>
       <section className="requirements"><h3>応募条件</h3><ul>{help.requirements.map(x => <li key={x}><Check />{x}</li>)}</ul></section>
-      <section className="store-intro bottom"><span className="eyebrow">ABOUT THE SHOP</span><h2>{item.storeName}について</h2><p className="lead">{item.storeDescription}</p><div className="atmosphere"><span>お店の雰囲気</span><p>{item.atmosphere}</p></div></section>
+      <section className="store-intro bottom"><span className="eyebrow">ABOUT THE SHOP</span><h2>{item.storeName}について</h2><p className="lead">{item.storeDescription}</p><div className="atmosphere"><span>お店の雰囲気</span><p>{item.atmosphere}</p></div><PastMakanaiBox storeName={item.storeName} /></section>
       <p className="legal-note">※ お店・給与・日時は体験用の仮データです。給与は地域の最低賃金以上で、まかないは給与とは別に無料で出ます。雇用契約はお店と結び、給与は MAKANAI がお店に代わって支払います。</p>
       <Link to={`/apply/${item.id}`} className="primary-button wide sticky-cta">この求人に応募する <ArrowRight /></Link>
     </article>
@@ -444,7 +495,10 @@ function MyPage() {
 
 /** 写真の出典（Unsplash） */
 function CreditsPage() {
-  const photos = makanaiItems.flatMap(item => [[item.dishImage, item.dishName], [item.storeImage, item.storeName]] as const)
+  const photos = [
+    ...makanaiItems.flatMap(item => [[item.dishImage, item.dishName], [item.storeImage, item.storeName]] as const),
+    ...Object.entries(storeHistory).flatMap(([store, history]) => history.past.map(p => [p.image, `${p.name}（${store}）`] as const)),
+  ]
   return <Shell back title="写真のクレジット"><section className="simple-page credits-page">
     <div className="page-title"><span className="eyebrow">PHOTO CREDITS</span><h1>写真のクレジット</h1><p>料理とお店の写真は、Unsplash で公開されている写真を使っています。お店の名前やメニューは架空のもので、写真に写っているお店とは関係ありません。</p></div>
     <ul className="credit-list">{photos.map(([src, label]) => { const credit = photoCredit(src); return <li key={src}><Photo src={src} alt={label} /><div><b>{label}</b><span>Photo by {credit.artist}</span><small><a href={credit.licenseUrl} target="_blank" rel="noreferrer">{credit.license}<ExternalLink /></a></small></div></li> })}</ul>
