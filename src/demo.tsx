@@ -4,6 +4,9 @@ import { addDays, toDateKey } from './format'
 import { storage } from './storage'
 import type { Application, ApplicationStatus, Category, MakanaiItem, OwnerApplicant, Review } from './types'
 
+/** 安く買った（予約した）まかないかどうか */
+export const isBuy = (application: Application) => application.type === 'buy'
+
 /** 学生側とお店側の画面で共有する、デモのデータ */
 interface Demo {
   items: MakanaiItem[]
@@ -11,6 +14,9 @@ interface Demo {
   toggleFavorite: (id: string) => void
   applications: Application[]
   apply: (makanaiId: string) => string
+  /** まかないを安く買う予約。すでに予約中ならその予約を返す */
+  order: (makanaiId: string) => string
+  cancel: (applicationId: string) => void
   setStatus: (applicationId: string, status: ApplicationStatus) => void
   saveReview: (applicationId: string, review: Review) => void
   ownerApplicants: OwnerApplicant[]
@@ -48,13 +54,22 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     items, favorites, applications, ownerApplicants, usedStock, visitedStores, likedCategories,
     toggleFavorite: (id) => setFavorites(prev => { const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]; storage.setFavorites(next); return next }),
     apply: (makanaiId) => {
-      const active = applications.find(x => x.makanaiId === makanaiId && x.status < 4)
+      const active = applications.find(x => x.makanaiId === makanaiId && x.status < 4 && !isBuy(x))
       if (active) return active.id
       const item = items.find(x => x.id === makanaiId)
-      const application: Application = { id: `app-${Date.now()}`, makanaiId, status: 0, appliedAt: new Date().toISOString(), jobDate: toDateKey(addDays(new Date(), item?.help.dayOffset ?? 0)) }
+      const application: Application = { id: `app-${Date.now()}`, type: 'help', makanaiId, status: 0, appliedAt: new Date().toISOString(), jobDate: toDateKey(addDays(new Date(), item?.help.dayOffset ?? 0)) }
       updateApplications(prev => [application, ...prev])
       return application.id
     },
+    order: (makanaiId) => {
+      const active = applications.find(x => x.makanaiId === makanaiId && x.status < 4 && isBuy(x))
+      if (active) return active.id
+      const item = items.find(x => x.id === makanaiId)
+      const application: Application = { id: `order-${Date.now()}`, type: 'buy', makanaiId, status: 0, appliedAt: new Date().toISOString(), jobDate: toDateKey(addDays(new Date(), item?.help.dayOffset ?? 0)) }
+      updateApplications(prev => [application, ...prev])
+      return application.id
+    },
+    cancel: (applicationId) => updateApplications(prev => prev.filter(a => a.id !== applicationId)),
     setStatus: (applicationId, status) => updateApplications(prev => prev.map(a => a.id === applicationId ? { ...a, status } : a)),
     saveReview: (applicationId, review) => updateApplications(prev => prev.map(a => a.id === applicationId ? { ...a, review } : a)),
     setOwnerStatus: (applicantId, status) => setOwnerApplicants(prev => { const next = prev.map(a => a.id === applicantId ? { ...a, status } : a); storage.setOwnerApplicants(next); return next }),

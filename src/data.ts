@@ -19,6 +19,7 @@ export const makanaiItems: MakanaiItem[] = [
     atmosphere: '家に帰ってきたようにほっとできる、12席の小さな食堂。常連さんとの会話もあたたかいお店です。',
     storeDescription: '旬の食材と、毎日食べても飽きない家庭料理を大切にしている町の食堂です。',
     ingredients: [{ name: '鶏もも肉', kg: 1.5, daysLeft: 1 }, { name: 'キャベツ', kg: 2, daysLeft: 2 }],
+    sale: { price: 500, from: '17:00', until: '20:00', remaining: 6 },
     help: { kind: '清掃', role: 'ゴミ出し・店先の簡単な清掃', detail: '店先の掃き掃除をして、お店のゴミを分別し、集積所まで運びます。', dayOffset: 0, start: '15:30', minutes: 45, location: '世田谷区太子堂（駅から徒歩4分）', hourlyWage: 1300, transport: '実費支給（上限 500 円）', mealCondition: 'お手伝い終了後、店内で提供', slots: 3, remaining: 2, requirements: ['18歳以上', '特別な経験は不要', '汚れてもよい服装'] }
   },
   {
@@ -28,6 +29,7 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1638866281450-3933540af86a'), storeImage: unsplash('1790102563096-64a25de9e9c0'), tags: ['濃厚', 'あったか', '地域創生'],
     atmosphere: 'どんぶりが積まれた木のカウンター越しに、湯気と活気が広がる気さくなラーメン店です。', storeDescription: '一杯ずつ丁寧に。地域の人のお腹と心を満たすラーメンを作っています。',
     ingredients: [{ name: 'もやし', kg: 1, daysLeft: 1 }, { name: '豚肩ロース', kg: 0.8, daysLeft: 2 }],
+    sale: { price: 550, from: '17:00', until: '21:00', remaining: 5 },
     help: { kind: '運ぶ', role: '飲料ケースの荷物持ち・棚への移動', detail: '業者さんが届けた飲料ケース（1 箱 10kg ほど）を、倉庫から店内の棚へ運びます。', dayOffset: 1, start: '15:00', minutes: 60, location: '杉並区高円寺北（駅から徒歩3分）', hourlyWage: 1350, transport: '実費支給（上限 500 円）', mealCondition: '荷物の移動終了後に提供', slots: 2, remaining: 1, requirements: ['18歳以上', '10kg程度の荷物を持てる方', '店舗経験は不要'] }
   },
   {
@@ -37,6 +39,7 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1743148509702-2198b23ede1c'), storeImage: unsplash('1784871258469-a81549044753'), tags: ['ふんわり卵', '洋食', '学生応援'],
     atmosphere: '陽の入る大きな窓とレトロな照明。ゆったりした時間が流れる洋食店です。', storeDescription: '懐かしい洋食に少しだけ今の気分を添えて。手作りを大切にする家族経営のお店です。',
     ingredients: [{ name: '卵', kg: 1.2, daysLeft: 3 }, { name: 'マッシュルーム', kg: 0.4, daysLeft: 1 }],
+    sale: { price: 600, from: '17:30', until: '20:30', remaining: 4 },
     help: { kind: '花壇・庭', role: '店先の花壇の草むしり・水やり', detail: '店先の花壇の草をむしり、プランターに水をやります。道具はお店が用意します。', dayOffset: 2, start: '14:00', minutes: 60, location: '武蔵野市吉祥寺南町（駅から徒歩6分）', hourlyWage: 1300, transport: '実費支給（上限 500 円）', mealCondition: '作業終了後に提供', slots: 2, remaining: 2, requirements: ['18歳以上', '園芸経験は不要', '軍手はお店が用意します'] }
   },
   {
@@ -55,6 +58,7 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1653220329192-ce4d725d352a'), storeImage: unsplash('1761393574666-c7b435ef2983'), tags: ['炭火焼き', '和食', '地域創生'],
     atmosphere: '紺ののれんの奥にカウンターが続く、港町らしい元気な声が飛び交う和食屋です。', storeDescription: '毎朝市場で選ぶ魚を、いちばんおいしい食べ方で届ける海鮮食堂です。',
     ingredients: [{ name: '真あじ', kg: 1.8, daysLeft: 1 }, { name: '大根', kg: 1.5, daysLeft: 3 }],
+    sale: { price: 600, from: '17:00', until: '20:00', remaining: 3 },
     help: { kind: '軽作業', role: 'テイクアウト袋のシール貼り・仕分け', detail: 'テイクアウト用の袋にお店のシールを貼り、サイズごとに分けます。座ってできます。', dayOffset: 3, start: '15:30', minutes: 60, location: '横浜市中区（駅から徒歩5分）', hourlyWage: 1350, transport: '実費支給（上限 500 円）', mealCondition: '作業終了後に提供', slots: 3, remaining: 2, requirements: ['18歳以上', '座ってできる簡単な作業です', '店舗経験は不要'] }
   },
   {
@@ -73,15 +77,17 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1609183480237-ccbb2d7c5772'), storeImage: unsplash('1759643854807-22c0feee6dd7'), tags: ['ごはんがすすむ', '定番', '地域交流'],
     atmosphere: '赤いのれんが目印の、にぎやかで親しみやすい定食屋です。', storeDescription: '忙しい毎日に、ちゃんとしたごはんを。地元野菜を使った定食を作っています。',
     ingredients: [{ name: '豚肩ロース', kg: 1.2, daysLeft: 1 }, { name: '青ねぎ', kg: 0.5, daysLeft: 2 }],
+    sale: { price: 500, from: '14:00', until: '16:00', remaining: 4 },
     help: { kind: '片付け', role: 'ランチ営業後の食器洗い・片付け', detail: 'ランチで使ったお皿やお椀を洗い、拭いて棚に片付けます。', dayOffset: 1, start: '14:30', minutes: 45, location: '市川市市川（駅から徒歩5分）', hourlyWage: 1300, transport: '実費支給（上限 500 円）', mealCondition: 'お手伝い終了後、店内で提供', slots: 3, remaining: 2, requirements: ['18歳以上', '特別な経験は不要', '水仕事ができる服装'] }
   },
   {
     id: 'gyoza-marufuku', dishName: '手包み焼き餃子', storeName: '餃子の店 まるふく', category: '定食', area: '東京都練馬区', access: { minutes: 35, distance: '14km', route: '電車＋徒歩35分' }, rating: 4.6, reviewCount: 112, mapPoint: { x: 118, y: 80 },
     shortDescription: 'パリッと焼いた手包み餃子と、炊きたてご飯。', description: '白菜とにらをたっぷり入れた、皮はパリッと中はジューシーな焼き餃子。ご飯とスープもつきます。',
-    recommendation: ['毎日手で包む、野菜たっぷりの餃子', '自家製ラー油とお酢でさっぱり', 'ご飯・スープつきの定食'],
+    recommendation: ['毎日手で包む、野菜たっぷりの餃子', '自家製ラー油とお酢でさっぱり', 'ご飯とスープもつきます'],
     dishImage: unsplash('1738681336104-608b4e7dc3b0'), storeImage: unsplash('1768162126008-3caf0710a268'), tags: ['手包み', 'ごはんがすすむ', 'フードロス削減'],
     atmosphere: '提灯とのれんが目印の、餃子を焼く音が響く町中華です。', storeDescription: '創業 30 年。毎日手で包む餃子と、町中華の定番を出しています。',
     ingredients: [{ name: '白菜', kg: 2, daysLeft: 2 }, { name: '豚ひき肉', kg: 1, daysLeft: 1 }],
+    sale: { price: 450, from: '17:00', until: '21:00', remaining: 8 },
     help: { kind: '仕込み', role: '餃子を包む仕込み（約 200 個）', detail: '店主に包み方を教わりながら、夜の営業で出す餃子を約 200 個包みます。', dayOffset: 0, start: '14:00', minutes: 90, location: '練馬区豊玉北（駅から徒歩3分）', hourlyWage: 1300, transport: '実費支給（上限 500 円）', mealCondition: '包んだ餃子を焼いて、作業後に提供', slots: 3, remaining: 2, requirements: ['18歳以上', '包み方はお店が教えます', '髪をまとめ、爪を短くしてお越しください'] }
   },
   {
@@ -91,6 +97,7 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1717903623956-080d34a18e58'), storeImage: unsplash('1790324452976-27d6899f7b13'), tags: ['お祭り', '地域を盛り上げる', '仲間と参加'],
     atmosphere: '商店街のとなりの公園に屋台が並び、家族連れでにぎわう年に一度のお祭りです。', storeDescription: '商店街の振興組合が開く秋まつり。屋台を手伝ってくれる学生を MAKANAI で募集しています。',
     ingredients: [{ name: 'キャベツ', kg: 3, daysLeft: 3 }, { name: '豚こま肉', kg: 1.5, daysLeft: 2 }],
+    sale: { price: 400, from: '10:00', until: '15:00', remaining: 30 },
     help: { kind: 'イベント', role: '秋まつりの屋台の手伝い（設営・盛り付け）', detail: '屋台のテントを立てるのを手伝い、焼きそばをパックに詰めてお客さんに渡します。', dayOffset: 4, start: '10:00', minutes: 180, location: '世田谷区太子堂 ひだまり通り商店街', hourlyWage: 1300, transport: '実費支給（上限 500 円）', mealCondition: '休憩のときに屋台で提供', slots: 10, remaining: 6, requirements: ['18歳以上', '法被（はっぴ）は商店街が貸し出します', '火や熱い鉄板は扱いません'] }
   },
   {
@@ -100,6 +107,7 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1595044643502-616eeebbdff3'), storeImage: unsplash('1738861666945-281c33ffff87'), tags: ['朝ごはん', 'フードロス削減', 'パン好き'],
     atmosphere: '朝 7 時から焼きたての香りが広がる、木の棚が並ぶ小さなパン屋さんです。', storeDescription: '国産小麦のパンを毎朝 40 種類焼いています。売れ残ったパンを減らすのが目標です。',
     ingredients: [{ name: '前日の食パン', kg: 1.5, daysLeft: 1 }, { name: '牛乳', kg: 1, daysLeft: 2 }],
+    sale: { price: 400, from: '8:00', until: '11:00', remaining: 5 },
     help: { kind: '品出し', role: '開店前のパンの袋詰め・陳列', detail: '焼き上がったパンを袋に詰め、値札と一緒に開店前の棚へ並べます。', dayOffset: 1, start: '7:00', minutes: 60, location: '川崎市中原区（駅から徒歩4分）', hourlyWage: 1300, transport: '実費支給（上限 500 円）', mealCondition: '作業のあと、イートインで提供', slots: 2, remaining: 1, requirements: ['18歳以上', '朝 7 時に来られる方', '髪をまとめてお越しください'] }
   },
   {
@@ -109,6 +117,7 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1765510295901-3aa756cc1471'), storeImage: unsplash('1768162125972-724be0bbc063'), tags: ['ふわとろ', '丼', 'がっつり'],
     atmosphere: 'カウンター越しに、店主がカツを揚げる音が聞こえる落ち着いたお店です。', storeDescription: '厚切りのとんかつとカツ丼のお店。昼はランチのお客さんで混み合います。',
     ingredients: [{ name: '豚ロース', kg: 1.2, daysLeft: 1 }, { name: '三つ葉', kg: 0.3, daysLeft: 1 }],
+    sale: { price: 600, from: '13:30', until: '15:00', remaining: 4 },
     help: { kind: '接客', role: 'ランチのピーク時の配膳・下げ物', detail: 'お昼の混む時間に、できた料理をお席へ運び、空いたお皿を下げます。', dayOffset: 2, start: '11:30', minutes: 90, location: '川口市栄町（駅から徒歩5分）', hourlyWage: 1350, transport: '実費支給（上限 500 円）', mealCondition: 'ランチ営業のあとに提供', slots: 2, remaining: 2, requirements: ['18歳以上', '明るくあいさつできる方', '飲食店の経験は不要'] }
   },
   {
@@ -118,6 +127,7 @@ export const makanaiItems: MakanaiItem[] = [
     dishImage: unsplash('1764520406362-b1673b2213bf'), storeImage: unsplash('1786561210727-ed700e30a0e5'), tags: ['鉄板焼き', 'ソースの香り', '留学生歓迎'],
     atmosphere: '赤い提灯とのれんが目印。奥に鉄板のカウンターが並ぶ、海外からのお客さんも多いお店です。', storeDescription: '目の前の鉄板で焼くお好み焼きのお店。英語のメニューを充実させたいと考えています。',
     ingredients: [{ name: 'キャベツ', kg: 2.5, daysLeft: 2 }, { name: '長いも', kg: 0.6, daysLeft: 3 }],
+    sale: { price: 550, from: '17:00', until: '21:00', remaining: 5 },
     help: { kind: 'メニューづくり', role: '英語メニュー・黒板 POP づくり', detail: 'メニューの説明を英語に直し、店先の黒板におすすめの一品を書きます。', dayOffset: 3, start: '14:30', minutes: 60, location: '船橋市本町（駅から徒歩6分）', hourlyWage: 1300, transport: '実費支給（上限 500 円）', mealCondition: '作業のあと、鉄板で焼いて提供', slots: 2, remaining: 1, requirements: ['18歳以上', 'かんたんな英語の説明が書ける方（留学生歓迎）', '字や絵をかくのが好きな方'] }
   }
 ]
@@ -133,6 +143,7 @@ export function demoHistory(today = new Date()): Application[] {
   const at = (days: number) => addDays(today, days)
   return [
     { id: 'app-demo-ramen', makanaiId: 'ramen-koharu', status: 4, appliedAt: at(-8).toISOString(), jobDate: toDateKey(at(-6)), review: { again: ['visit', 'help'], comment: 'スープが絶品。店長さんとの話も楽しかった！', createdAt: at(-6).toISOString() } },
+    { id: 'app-demo-gyoza', type: 'buy', makanaiId: 'gyoza-marufuku', status: 4, appliedAt: at(-3).toISOString(), jobDate: toDateKey(at(-3)), review: { again: ['visit', 'help'], comment: 'パリパリで最高。今度は包むのを手伝ってみたい！', createdAt: at(-3).toISOString() } },
     { id: 'app-demo-fish', makanaiId: 'fish-nagi', status: 4, appliedAt: at(-15).toISOString(), jobDate: toDateKey(at(-13)), review: { again: ['visit'], comment: '炭火のあじ、皮がパリッとしておいしかった。', createdAt: at(-13).toISOString() } }
   ]
 }
@@ -159,8 +170,8 @@ export const ownerPastReviews = [
   { key: 'past-kobayashi', name: '小林 はな', again: ['visit'] as const, comment: '近所なのに知らなかったお店。今度は友だちと食べに来ます。' }
 ]
 
-/** 今月これまでの実績（デモの数値）。アプリで完了したお手伝いは、この上に足される */
-export const ownerMonthBase = { visitors: 14, rescuedKg: 18.6, reviews: 13, againVisit: 11, wages: 13650, fees: 4095 }
+/** 今月これまでの実績（デモの数値）。アプリで完了したお手伝いや、売れたまかないは、この上に足される */
+export const ownerMonthBase = { visitors: 14, rescuedKg: 18.6, reviews: 13, againVisit: 11, wages: 13650, fees: 4095, sold: 32, sales: 16000 }
 
 export const rolePresets: { kind: HelpKind; role: string; detail: string }[] = [
   { kind: '片付け', role: '閉店後の片付け・食器洗い', detail: '営業で使ったお皿を洗い、拭いて棚に片付けます。' },

@@ -1,9 +1,9 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Bell, CalendarDays, Check, ChevronRight, Home, Leaf, Plus, UserRound, UsersRound, UtensilsCrossed } from 'lucide-react'
+import { ArrowRight, Bell, CalendarDays, Check, ChevronRight, Home, Leaf, Plus, ShoppingBag, Ticket, UserRound, UsersRound, UtensilsCrossed } from 'lucide-react'
 import { categories, demoUser, helpKinds, minimumWage, ownerMonthBase, ownerPastReviews, ownerStock, ownerStoreId, rolePresets, statusLabels, transportOptions } from './data'
-import { useDemo } from './demo'
-import { dayLabel, durationLabel, endTime, feeOf, fromDateKey, jobWhen, kg, monthDay, rescuedPerPerson, wageOf, yen } from './format'
+import { isBuy, useDemo } from './demo'
+import { dayLabel, durationLabel, endTime, feeOf, fromDateKey, jobWhen, kg, monthDay, rescuedPerPerson, saleWhen, wageOf, yen } from './format'
 import { Photo } from './ui'
 import type { ApplicationStatus, Category, HelpKind, MakanaiItem, Review, StockItem } from './types'
 
@@ -24,15 +24,16 @@ function OwnerShell({ children }: { children: ReactNode }) {
 
 interface Person { key: string; id: string; mine: boolean; name: string; profile: string; item: MakanaiItem; status: ApplicationStatus; review?: Review; when: string }
 
-/** このお店の求人と、その応募者（デモの利用者＋ほかの学生） */
+/** このお店の求人と、その応募者（デモの利用者＋ほかの学生）、まかないの予約 */
 function useStore() {
   const { items, applications, ownerApplicants } = useDemo()
   const store = items.find(x => x.id === ownerStoreId)!
   const jobs = items.filter(x => x.storeName === store.storeName)
   const people: Person[] = []
+  const orders = applications.flatMap(app => { const item = jobs.find(x => x.id === app.makanaiId); return item && isBuy(app) ? [{ app, item }] : [] })
   applications.forEach(app => {
     const item = jobs.find(x => x.id === app.makanaiId)
-    if (!item) return
+    if (!item || isBuy(app)) return
     const date = app.jobDate ? fromDateKey(app.jobDate) : undefined
     people.push({ key: app.id, id: app.id, mine: true, name: demoUser.name, profile: demoUser.profile, item, status: app.status, review: app.review, when: date ? `${dayLabel(date)} ${item.help.start}〜${endTime(item.help.start, item.help.minutes)}` : jobWhen(item) })
   })
@@ -40,19 +41,22 @@ function useStore() {
     const item = jobs.find(x => x.id === applicant.makanaiId)
     if (item) people.push({ key: applicant.id, id: applicant.id, mine: false, name: applicant.name, profile: applicant.profile, item, status: applicant.status, review: applicant.review, when: jobWhen(item) })
   })
-  return { store, jobs, people }
+  return { store, jobs, people, orders }
 }
 
 const againText = { visit: 'また行きたい', help: 'また手伝いたい' } as const
 
 export function OwnerHome() {
   const { usedStock } = useDemo()
-  const { store, jobs, people } = useStore()
+  const { store, jobs, people, orders } = useStore()
   const location = useLocation()
   const created = (location.state as { created?: string } | null)?.created
   const done = people.filter(p => p.status >= 3)
   const reviewed = people.filter(p => p.review)
-  const rescued = ownerMonthBase.rescuedKg + done.reduce((sum, p) => sum + rescuedPerPerson(p.item), 0)
+  const sold = orders.filter(o => o.app.status === 4)
+  const reserved = orders.filter(o => o.app.status < 4)
+  const rescued = ownerMonthBase.rescuedKg + [...done.map(p => p.item), ...sold.map(o => o.item)].reduce((sum, item) => sum + rescuedPerPerson(item), 0)
+  const sales = ownerMonthBase.sales + sold.reduce((sum, o) => sum + (o.item.sale?.price ?? 0), 0)
   const wages = ownerMonthBase.wages + done.reduce((sum, p) => sum + wageOf(p.item.help), 0)
   const fees = ownerMonthBase.fees + done.reduce((sum, p) => sum + feeOf(wageOf(p.item.help)), 0)
   const reviewCount = ownerMonthBase.reviews + reviewed.length
@@ -64,6 +68,7 @@ export function OwnerHome() {
     <section className="owner-intro"><span className="hello">{monthDay(new Date())}・今日もおつかれさまです</span><h1>{store.storeName}</h1><p>{store.area}</p></section>
     {created && <div className="owner-toast" role="status"><Check /><span>「{created}」の求人を掲載しました。学生側のホームに表示されます。<Link to="/home">学生側で見る</Link></span></div>}
     {waiting > 0 && <Link to="/owner/applicants" className="owner-alert"><Bell /><span>確認待ちの応募が <b>{waiting}件</b> あります</span><ChevronRight /></Link>}
+    {reserved.length > 0 && <div className="owner-alert buy"><Ticket /><span>まかないの予約が <b>{reserved.length}件</b>（{reserved.map(o => `${demoUser.name} さん・${saleWhen(o.item)}`).join('、')}）</span></div>}
     <section className="owner-section">
       <div className="section-heading"><div><span className="eyebrow">THIS MONTH</span><h2>今月の実績</h2></div><span>デモの数値</span></div>
       <div className="kpi-grid">
@@ -71,6 +76,8 @@ export function OwnerHome() {
         <div className="kpi"><small>来てくれた人</small><b>{ownerMonthBase.visitors + done.length}<i>人</i></b><span>お手伝いが完了した人</span></div>
         <div className="kpi"><small>また行きたい</small><b>{againRate}<i>%</i></b><span>レビュー {reviewCount}件のうち</span></div>
         <div className="kpi"><small>MAKANAI へのお支払い</small><b>{yen(wages + fees)}</b><span>給与 {yen(wages)} ＋ 利用料 {yen(fees)}</span></div>
+        <div className="kpi"><small>安く売ったまかない</small><b>{ownerMonthBase.sold + sold.length}<i>食</i></b><span>売上 {yen(sales)}</span></div>
+        <div className="kpi"><small>今日の予約</small><b>{reserved.length}<i>件</i></b><span>手伝わずに食べに来る人</span></div>
       </div>
     </section>
     <section className="owner-section">
@@ -80,7 +87,7 @@ export function OwnerHome() {
     </section>
     <section className="owner-section">
       <div className="section-heading"><div><span className="eyebrow">OPEN JOBS</span><h2>掲載中の求人</h2></div><span>{jobs.length}件</span></div>
-      <div className="owner-jobs">{jobs.map(job => <Link to={`/makanai/${job.id}`} className="owner-job" key={job.id}><Photo src={job.dishImage} alt={job.dishName} /><div><h3>{job.dishName}{job.fresh && <span className="new-chip">新着</span>}</h3><p>{jobWhen(job)}・{durationLabel(job.help.minutes)}</p><span>応募 {people.filter(p => p.item.id === job.id).length}人／募集 {job.help.slots}人・時給 {yen(job.help.hourlyWage)}</span></div><ChevronRight /></Link>)}</div>
+      <div className="owner-jobs">{jobs.map(job => <Link to={`/makanai/${job.id}`} className="owner-job" key={job.id}><Photo src={job.dishImage} alt={job.dishName} /><div><h3>{job.dishName}{job.fresh && <span className="new-chip">新着</span>}</h3><p>{jobWhen(job)}・{durationLabel(job.help.minutes)}</p><span>応募 {people.filter(p => p.item.id === job.id).length}人／募集 {job.help.slots}人・時給 {yen(job.help.hourlyWage)}</span><span className="sale-line"><ShoppingBag />{job.sale ? `まかない価格 ${yen(job.sale.price)}・のこり${job.sale.remaining}食・予約 ${orders.filter(o => o.item.id === job.id).length}件` : 'まかないの販売なし（手伝った人だけ）'}</span></div><ChevronRight /></Link>)}</div>
     </section>
     <section className="owner-section">
       <div className="section-heading"><div><span className="eyebrow">VOICES</span><h2>届いたレビュー</h2></div><span>{reviews.length}件</span></div>
@@ -138,11 +145,16 @@ export function OwnerNewJob() {
   const [slots, setSlots] = useState(2)
   const [hourlyWage, setHourlyWage] = useState(minimumWage.amount)
   const [transport, setTransport] = useState(transportOptions[0])
+  const [selling, setSelling] = useState(true)
+  const [salePrice, setSalePrice] = useState(500)
+  const [saleCount, setSaleCount] = useState(5)
+  const [saleFrom, setSaleFrom] = useState('17:00')
+  const [saleUntil, setSaleUntil] = useState('20:00')
   const chosen = stock.filter(x => picked.includes(x.id))
   const wage = Math.ceil(hourlyWage * minutes / 60)
   const fee = feeOf(wage)
   const wageError = hourlyWage < minimumWage.amount ? `${minimumWage.area}の最低賃金（${yen(minimumWage.amount)}・${minimumWage.since}から）を下回っています。` : ''
-  const ready = chosen.length > 0 && !!name.trim() && !!role.trim() && !!start && !wageError
+  const ready = chosen.length > 0 && !!name.trim() && !!role.trim() && !!start && !wageError && (!selling || (salePrice >= 100 && !!saleFrom && !!saleUntil))
   const toggle = (id: string) => setPicked(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
   const submit = (event: FormEvent) => {
     event.preventDefault()
@@ -155,6 +167,7 @@ export function OwnerNewJob() {
       description: `使い切れずに残りそうな${names}を、店主がまかないに仕立てます。お手伝いのあと、できたてをどうぞ。`,
       recommendation: ['期限間近の食材を使い切る一皿', 'お手伝いのあとに、できたてを提供', 'ご飯とお味噌汁つき'],
       tags: ['新着', 'フードロス削減', 'できたて'],
+      sale: selling ? { price: salePrice, from: saleFrom, until: saleUntil, remaining: saleCount } : undefined,
       ingredients: chosen.map(x => ({ name: x.name, kg: x.kg, daysLeft: x.daysLeft })),
       help: { kind, role: role.trim(), detail: detail.trim() || undefined, dayOffset, start, minutes, location: store.help.location, hourlyWage, transport, mealCondition: 'お手伝い終了後、店内で提供', slots, remaining: slots, requirements: ['18歳以上', '特別な経験は不要', '食物アレルギーは事前申告'] }
     }
@@ -190,6 +203,21 @@ export function OwnerNewJob() {
       </div>
       <p id="wage-note" className={`form-note ${wageError ? 'error' : ''}`}>{wageError || `${minimumWage.area}の最低賃金は ${yen(minimumWage.amount)}（${minimumWage.since}から）。まかないは給与に含めず、無料で出します。`}</p>
       <label className="field" htmlFor="job-transport"><span>交通費</span><select id="job-transport" value={transport} onChange={e => setTransport(e.target.value)}>{transportOptions.map(t => <option key={t}>{t}</option>)}</select></label>
+    </fieldset>
+
+    <fieldset className="form-step"><legend><b>4</b>まかないを安く売る（選べます）</legend>
+      <label className="check-field"><input type="checkbox" checked={selling} onChange={e => setSelling(e.target.checked)} /><span>手伝わない人にも、まかないを安く売る</span></label>
+      {selling && <>
+        <div className="field-row">
+          <label className="field" htmlFor="sale-price"><span>まかない価格（円）</span><input id="sale-price" type="number" inputMode="numeric" min={100} step={50} value={salePrice || ''} onChange={e => setSalePrice(Number(e.target.value))} /></label>
+          <label className="field" htmlFor="sale-count"><span>売る数</span><select id="sale-count" value={saleCount} onChange={e => setSaleCount(Number(e.target.value))}>{[3, 5, 8, 10, 15].map(n => <option key={n} value={n}>{n}食</option>)}</select></label>
+        </div>
+        <div className="field-row">
+          <label className="field" htmlFor="sale-from"><span>受け取り（から）</span><input id="sale-from" type="time" step={900} value={saleFrom} onChange={e => setSaleFrom(e.target.value)} /></label>
+          <label className="field" htmlFor="sale-until"><span>受け取り（まで）</span><input id="sale-until" type="time" step={900} value={saleUntil} onChange={e => setSaleUntil(e.target.value)} /></label>
+        </div>
+        <p className="form-note">学生はアプリで予約して、お店で支払います。売れた分はお店の売上になります。「通常○円→半額」のような表示は使わず、まかない価格だけを出します。</p>
+      </>}
     </fieldset>
 
     <section className="cost-card" aria-label="お店が払う金額">

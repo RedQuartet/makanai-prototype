@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { Routes, Route, Link, NavLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, Coins, ExternalLink, HandHelping, Heart, Home, Leaf, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, Sparkles, Star, Store, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, Check, ChevronRight, Clock3, Coins, ExternalLink, HandHelping, Heart, Home, Leaf, LocateFixed, Map, MapPin, Navigation, RotateCcw, Search, ShoppingBag, Sparkles, Star, Store, Ticket, UserRound, UsersRound, UtensilsCrossed, X } from 'lucide-react'
 import { photoCredit } from './credits'
 import { areas, categories, demoUser as user, helpKinds, makanaiItems, statusLabels } from './data'
-import { DemoProvider, useDemo } from './demo'
-import { dayLabel, durationLabel, endTime, fromDateKey, ingredientList, jobDate, jobWhen, kg, rescuedPerPerson, toDateKey, totalKg, wageOf, yen } from './format'
+import { DemoProvider, isBuy, useDemo } from './demo'
+import { dayLabel, durationLabel, endTime, fromDateKey, ingredientList, jobDate, jobWhen, kg, rescuedPerPerson, saleWhen, toDateKey, totalKg, wageOf, yen } from './format'
 import { OwnerApplicants, OwnerHome, OwnerNewJob } from './owner'
 import { storage } from './storage'
 import { KindIcon, Logo, Photo } from './ui'
@@ -41,9 +41,9 @@ function Welcome() {
     <div className="welcome-brand">
       <span className="welcome-mark"><UtensilsCrossed /></span>
       <h1>MAKANAI</h1>
-      <p>まかないから探す求人サービス</p>
+      <p>食べるか、手伝うかを選べる<br />町のまかないサービス</p>
       <p className="welcome-vision">町じゅうが、<br />同じ釜の飯を食べる仲間になる。</p>
-      <ul className="welcome-steps"><li><Search />探す</li><li><HandHelping />手伝う</li><li><Coins />給与＋まかない</li></ul>
+      <ul className="welcome-steps"><li><Search />探す</li><li><ShoppingBag />安く食べる</li><li><HandHelping />手伝って食べる</li></ul>
     </div>
     <div className="welcome-actions">
       <button className="primary-button wide" onClick={start}>はじめる <ArrowRight /></button>
@@ -59,6 +59,15 @@ function FavoriteButton({ id, light = false }: { id: string; light?: boolean }) 
   return <button className={`favorite-button ${active ? 'active' : ''} ${light ? 'light' : ''}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(id) }} aria-label={active ? 'お気に入りから削除' : 'お気に入りに追加'}><Heart fill={active ? 'currentColor' : 'none'} /></button>
 }
 
+/** まかないの食べ方。安く買う（お店が売っているときだけ）か、手伝って給与とまかないをもらうか */
+function WayChoices({ item }: { item: MakanaiItem }) {
+  const { help, sale } = item
+  return <div className={`way-choices ${sale ? '' : 'single'}`}>
+    {sale && <Link className="way-choice buy" to={`/buy/${item.id}`}><small><ShoppingBag />安く食べる</small><b>{yen(sale.price)}</b><span>{saleWhen(item)}</span></Link>}
+    <Link className="way-choice help" to={`/store/${item.id}`}><small><KindIcon kind={help.kind} />手伝って食べる・{help.kind}</small><b>給与 {yen(wageOf(help))}</b><span>＋まかない無料・{jobWhen(item)}</span></Link>
+  </div>
+}
+
 function DishCard({ item }: { item: MakanaiItem }) {
   const { visitedStores } = useDemo()
   const first = item.ingredients[0]
@@ -69,11 +78,11 @@ function DishCard({ item }: { item: MakanaiItem }) {
     </Link>
     <div className="dish-card-body">
       <div className="card-meta"><div className="card-location"><MapPin />{item.area}</div><div className="access-time"><Navigation />現在地から {item.access.route}</div></div><h2><Link to={`/makanai/${item.id}`}>{item.dishName}</Link></h2><div className="store-rating"><p className="store-name">{item.storeName}</p><span><Star fill="currentColor" />{item.rating.toFixed(1)} <small>({item.reviewCount}件)</small></span></div>
-      <div className="job-chips"><span className="kind"><KindIcon kind={item.help.kind} />{item.help.kind}</span><span><CalendarDays />{jobWhen(item)}</span><span className="pay"><Coins />{payLine(item)}</span></div>
       {first && <p className="rescue-line"><Leaf />使う食材：期限間近の{first.name} {kg(first.kg)}{item.ingredients.length > 1 ? ' ほか' : ''}</p>}
       <p className="dish-description">{item.shortDescription}</p>
       <div className="tag-row">{item.tags.map(tag => <span key={tag}>#{tag}</span>)}</div>
-      <Link className="card-link" to={`/store/${item.id}`}><span><HandHelping />お手伝いをする</span><ChevronRight /></Link>
+      <WayChoices item={item} />
+      {!item.sale && <p className="way-note">このまかないは、手伝った人だけが食べられます。</p>}
     </div>
   </article>
 }
@@ -101,7 +110,7 @@ function TodayPick({ item, reason }: { item: MakanaiItem; reason: string }) {
         <span className="today-reason">{reason}</span>
         <h2>{item.dishName}</h2>
         <p>{item.storeName}・{item.access.route}</p>
-        <div className="today-job"><b>{jobWhen(item)}</b><span>{durationLabel(item.help.minutes)}の{item.help.kind}のお手伝いで、{payLine(item)}</span></div>
+        <div className="today-job"><b>{jobWhen(item)}</b><span>{durationLabel(item.help.minutes)}の{item.help.kind}のお手伝いで、{payLine(item)}</span>{item.sale && <span className="today-buy"><ShoppingBag />手伝わずに食べるなら {yen(item.sale.price)}（{item.sale.from}〜）</span>}</div>
       </div>
     </Link>
     <p className="rescue-line"><Leaf />期限間近の{ingredientList(item)}を使い切ります</p>
@@ -217,12 +226,16 @@ function MakanaiDetail() {
       <section className="rescue-box">
         <span className="mini-title"><Leaf /> このまかないで救う食材</span>
         {item.ingredients.map(x => <div className="rescue-row" key={x.name}><b>{x.name}</b><span>{kg(x.kg)}</span><em className={x.daysLeft <= 1 ? 'urgent' : ''}>期限まであと{x.daysLeft}日</em></div>)}
-        <p>合計 {kg(totalKg(item))}（{item.help.slots}人分）。使い切れずに捨てられるはずだった食材を、お手伝いのあとのまかないにします。</p>
+        <p>合計 {kg(totalKg(item))}。使い切れずに捨てられるはずだった食材を、まかないにして食べきります。</p>
       </section>
       <section className="recommend-box"><span className="mini-title"><Sparkles /> おすすめポイント</span>{item.recommendation.map((point, i) => <div className="recommend-row" key={point}><b>0{i + 1}</b><span>{point}</span></div>)}</section>
-      <section className="condition-box"><h2>このまかないの提供条件</h2><div><Clock3 /><span><small>タイミング</small>お手伝いのあと</span></div><div><UtensilsCrossed /><span><small>提供方法</small>{item.help.mealCondition}</span></div><div><Coins /><span><small>料金</small>無料（給与とは別にもらえます）</span></div></section>
-      <div className="story-nudge"><span>まずは料理から。<br />気になったら、お店とお手伝いの中身を見てみよう。</span></div>
-      <Link to={`/store/${item.id}`} className="primary-button wide sticky-cta">このまかないがつく求人を見る <ArrowRight /></Link>
+      <section className="ways-box"><h2>食べ方を選ぶ</h2>
+        {item.sale && <div className="way-row"><span className="way-icon buy"><ShoppingBag /></span><div><b>安く食べる　{yen(item.sale.price)}</b><small>{saleWhen(item)}・店内で・のこり{item.sale.remaining}食</small><small>お支払いはお店で</small></div></div>}
+        <div className="way-row"><span className="way-icon"><KindIcon kind={item.help.kind} /></span><div><b>手伝って食べる　給与 {yen(wageOf(item.help))} ＋ まかない無料</b><small>{jobWhen(item)}・{item.help.kind}のお手伝い（{durationLabel(item.help.minutes)}）</small><small>まかないは給与とは別に、無料でつきます</small></div></div>
+        {!item.sale && <p className="way-note">このまかないは、手伝った人だけが食べられます。</p>}
+      </section>
+      {item.sale && <div className="story-nudge"><span>まずは食べに行くのもあり。<br />気に入ったら、次は手伝ってみよう。</span></div>}
+      <div className="sticky-choice">{item.sale && <Link to={`/buy/${item.id}`} className="secondary-button"><ShoppingBag />{yen(item.sale.price)}で食べる</Link>}<Link to={`/store/${item.id}`} className="primary-button"><HandHelping />手伝って食べる</Link></div>
     </article>
   </Shell>
 }
@@ -266,7 +279,7 @@ function ApplyConfirm() {
   const item = useItem()
   if (!item) return <NotFound />
   const { help } = item
-  const active = applications.find(x => x.makanaiId === item.id && x.status < 4)
+  const active = applications.find(x => x.makanaiId === item.id && x.status < 4 && !isBuy(x))
   const submit = () => { const applicationId = apply(item.id); navigate(`/application/${applicationId}`, { replace: true }) }
   return <Shell back title="応募内容の確認"><article className="detail-content confirm-page">
     <div className="confirm-dish"><Photo src={item.dishImage} alt={item.dishName} /><div><small>お手伝いのあとのまかない</small><strong>{item.dishName}</strong><span>{item.storeName}</span></div></div>
@@ -286,13 +299,71 @@ function ApplyConfirm() {
   </article></Shell>
 }
 
+/** 安く買う予約の確認。お支払いはお店で */
+function BuyConfirm() {
+  const { applications, order } = useDemo()
+  const navigate = useNavigate()
+  const item = useItem()
+  if (!item) return <NotFound />
+  const { sale } = item
+  if (!sale) return <Navigate to={`/makanai/${item.id}`} replace />
+  const active = applications.find(x => x.makanaiId === item.id && x.status < 4 && isBuy(x))
+  const submit = () => { const orderId = order(item.id); navigate(`/order/${orderId}`, { replace: true }) }
+  return <Shell back title="予約内容の確認"><article className="detail-content confirm-page">
+    <div className="confirm-dish"><Photo src={item.dishImage} alt={item.dishName} /><div><small>安く食べるまかない</small><strong>{item.dishName}</strong><span>{item.storeName}</span></div></div>
+    <h1>予約内容を確認</h1><div className="confirm-list">
+      <div><span>受け取り</span><b>{saleWhen(item)}</b></div>
+      <div><span>食べる場所</span><b>店内（{item.help.location}）</b></div>
+      <div><span>まかない価格</span><b>{yen(sale.price)}</b></div>
+      <div><span>お支払い</span><b>お店で（現金・キャッシュレス）</b></div>
+      <div><span>使う食材</span><b>期限間近の{ingredientList(item)}</b></div>
+    </div>
+    <div className="notice-box"><strong>予約の前にご確認ください</strong><ul><li>これは体験用プロトタイプで、実際の店舗へ通知されません。</li><li>まかないは数に限りがあり、のこり{sale.remaining}食です。</li><li>時間内に行けなくなったら、アプリから予約をやめてください。</li></ul></div>
+    {active ? <Link className="primary-button wide" to={`/order/${active.id}`}>予約を見る <ArrowRight /></Link> : <button className="primary-button wide" onClick={submit}>予約する <ArrowRight /></button>}
+    <p className="agreement">ボタンを押すことで、上記の内容に同意したものとします。</p>
+  </article></Shell>
+}
+
+/** 手伝ってみたくなったら、同じお店のお手伝いへ */
+function HelpNudge({ item }: { item: MakanaiItem }) {
+  return <Link to={`/store/${item.id}`} className="help-nudge"><span className="way-icon"><KindIcon kind={item.help.kind} /></span><div><small>次は手伝って食べてみる？</small><b>{item.help.role}</b><span>{jobWhen(item)}・給与 {yen(wageOf(item.help))} ＋ まかない無料</span></div><ChevronRight /></Link>
+}
+
+function OrderPage() {
+  const { applicationId } = useParams()
+  const { applications, items, setStatus, cancel } = useDemo()
+  const navigate = useNavigate()
+  const app = applications.find(x => x.id === applicationId && isBuy(x))
+  const item = items.find(x => x.id === app?.makanaiId)
+  if (!app || !item) return <NotFound />
+  const date = app.jobDate ? fromDateKey(app.jobDate) : jobDate(item)
+  const when = item.sale ? `${dayLabel(date)} ${item.sale.from}〜${item.sale.until}` : dayLabel(date)
+  const eaten = app.status === 4
+  const stop = () => { if (window.confirm('この予約をやめますか？')) { cancel(app.id); navigate('/mypage', { replace: true }) } }
+  return <Shell back title="予約"><article className="completion-page">
+    <div className={`completion-icon ${eaten ? 'status-4' : 'status-2'}`}>{eaten ? '🍽️' : <Ticket />}</div><span className="eyebrow">YOUR MAKANAI</span>
+    <h1>{eaten ? 'まかないを食べました！' : '予約しました！'}</h1>
+    <p>{eaten ? (app.review ? 'レビューはお店に届きました。また会いに行きましょう。' : 'おいしかったら、ひと言レビューを送りましょう。') : `${when}にお店へ。「MAKANAI で予約した${user.name.split(' ')[0]}です」と伝えてください。`}</p>
+    <div className="application-summary"><Photo src={item.dishImage} alt={item.dishName} /><div><small>{item.storeName}</small><strong>{item.dishName}</strong><span><CalendarDays />{when}</span></div></div>
+    {!eaten && <div className="order-ticket"><div><span>お支払い（お店で）</span><b>{yen(item.sale?.price ?? 0)}</b></div><div><span>場所</span><b>{item.help.location}</b></div></div>}
+    {eaten && <div className="rescue-result"><Leaf /><div><b>{kg(rescuedPerPerson(item))} の食材を救いました</b><span>期限間近の{item.ingredients.map(x => x.name).join('・')}を使ったまかないでした</span></div></div>}
+    {eaten && (app.review ? <ReviewDone application={app} labels={buyerAgainLabels} /> : <ReviewForm applicationId={app.id} placeholder={`例：${item.dishName}、最高でした！`} labels={buyerAgainLabels} />)}
+    {eaten && <HelpNudge item={item} />}
+    {!eaten && <><button className="primary-button wide" onClick={() => setStatus(app.id, 4)}>デモ：お店で食べた <ArrowRight /></button><button className="text-button" onClick={stop}>予約をやめる</button></>}
+    {eaten && <Link to="/mypage" className="primary-button wide">マイページで記録を見る <ArrowRight /></Link>}
+    <Link to="/home" className="text-link">ほかのまかないを探す</Link>
+  </article></Shell>
+}
+
 function Progress({ status }: { status: ApplicationStatus }) {
   return <div className="progress-list">{statusLabels.map((label, i) => <div className={`progress-step ${i <= status ? 'done' : ''} ${i === status ? 'current' : ''}`} key={label}><span>{i < status || status === 4 ? <Check /> : i + 1}</span><div><b>{label}</b>{i === status && <small>{i === 4 ? 'おつかれさまでした。おいしい時間を！' : '現在のステータス'}</small>}</div></div>)}</div>
 }
 
 const againLabels: Record<Again, string> = { visit: 'また行きたい', help: 'また手伝いたい' }
+/** 買って食べた人には、次は手伝うきっかけになる聞き方にする */
+const buyerAgainLabels: Record<Again, string> = { visit: 'また食べに行きたい', help: '今度は手伝いたい' }
 
-function ReviewForm({ applicationId, placeholder }: { applicationId: string; placeholder: string }) {
+function ReviewForm({ applicationId, placeholder, labels = againLabels }: { applicationId: string; placeholder: string; labels?: Record<Again, string> }) {
   const { saveReview } = useDemo()
   const [again, setAgain] = useState<Again[]>([])
   const [comment, setComment] = useState('')
@@ -301,15 +372,15 @@ function ReviewForm({ applicationId, placeholder }: { applicationId: string; pla
   return <form className="review-form" onSubmit={submit}>
     <h2>ひと言レビュー</h2>
     <p>お店の画面に届きます。お店の励みになります。</p>
-    <div className="again-row">{(['visit', 'help'] as const).map(value => <button type="button" key={value} className={again.includes(value) ? 'on' : ''} aria-pressed={again.includes(value)} onClick={() => toggle(value)}>{value === 'visit' ? <Store /> : <HandHelping />}{againLabels[value]}</button>)}</div>
+    <div className="again-row">{(['visit', 'help'] as const).map(value => <button type="button" key={value} className={again.includes(value) ? 'on' : ''} aria-pressed={again.includes(value)} onClick={() => toggle(value)}>{value === 'visit' ? <Store /> : <HandHelping />}{labels[value]}</button>)}</div>
     <label className="review-input"><span className="sr-only">ひと言</span><input id="review-comment" value={comment} maxLength={60} onChange={e => setComment(e.target.value)} placeholder={placeholder} /></label>
     <button className="primary-button wide" disabled={!again.length && !comment.trim()}>レビューを送る</button>
   </form>
 }
 
-function ReviewDone({ application }: { application: Application }) {
+function ReviewDone({ application, labels = againLabels }: { application: Application; labels?: Record<Again, string> }) {
   const review = application.review!
-  return <div className="review-done"><span className="mini-title"><Check /> レビューを送りました</span>{review.again.length > 0 && <div className="again-chips">{review.again.map(x => <span key={x} className="again-chip">{againLabels[x]}</span>)}</div>}{review.comment && <p>「{review.comment}」</p>}</div>
+  return <div className="review-done"><span className="mini-title"><Check /> レビューを送りました</span>{review.again.length > 0 && <div className="again-chips">{review.again.map(x => <span key={x} className="again-chip">{labels[x]}</span>)}</div>}{review.comment && <p>「{review.comment}」</p>}</div>
 }
 
 function ApplicationPage() {
@@ -318,6 +389,7 @@ function ApplicationPage() {
   const app = applications.find(x => x.id === applicationId)
   const item = items.find(x => x.id === app?.makanaiId)
   if (!app || !item) return <NotFound />
+  if (isBuy(app)) return <Navigate to={`/order/${app.id}`} replace />
   const date = app.jobDate ? fromDateKey(app.jobDate) : jobDate(item)
   const when = `${dayLabel(date)} ${item.help.start}〜${endTime(item.help.start, item.help.minutes)}`
   const messages = ['応募が完了しました！', 'お店の確認を待っています', '採用が決まりました！', 'お手伝い、おつかれさまでした！', 'まかないを食べました！']
@@ -340,6 +412,9 @@ function FavoritesPage() {
   return <Shell title="お気に入り"><section className="simple-page"><div className="page-title"><span className="eyebrow">YOUR FAVORITES</span><h1>食べてみたい<br />まかない</h1><p>{liked.length}件のお気に入り</p></div>{liked.length ? <div className="dish-grid">{liked.map(x => <DishCard key={x.id} item={x} />)}</div> : <div className="empty-state"><span>♡</span><h2>まだお気に入りはありません</h2><p>食べてみたいまかないを見つけて、ハートを押してみましょう。</p><Link className="secondary-button" to="/home">まかないを探す</Link></div>}</section></Shell>
 }
 
+/** 応募（手伝う）と予約（安く買う）で、開く画面が違う */
+const recordPath = (app: Application) => isBuy(app) ? `/order/${app.id}` : `/application/${app.id}`
+
 function MyPage() {
   const { items, favorites, applications, resetDemo } = useDemo()
   const withItem = applications.map(app => ({ app, item: items.find(x => x.id === app.makanaiId) })).filter((x): x is { app: Application; item: MakanaiItem } => !!x.item)
@@ -349,9 +424,9 @@ function MyPage() {
   return <Shell title="マイページ"><section className="mypage">
     <div className="profile-card"><div className="profile-avatar">{user.initial}</div><div><small>こんにちは！</small><h1>{user.name}</h1><span><MapPin />{user.area}</span></div></div>
     <div className="rescue-card"><span className="rescue-icon"><Leaf /></span><div><small>あなたが救った食材</small><strong>{kg(rescued)}</strong><span>まかない {completed.length} 皿分。期限間近の食材を、おいしく使い切りました。</span></div></div>
-    <div className="stat-row"><Link to="/favorites"><b>{favorites.length}</b><span>お気に入り</span></Link><div><b>{active.length}</b><span>応募中</span></div><div><b>{completed.length}</b><span>食べた</span></div></div>
-    <section className="mypage-section"><div className="section-heading"><h2>応募状況</h2></div>{active.length ? <div className="application-list">{active.map(({ app, item }) => <Link to={`/application/${app.id}`} className="application-card" key={app.id}><Photo src={item.dishImage} alt={item.dishName} /><div><span className={`status-chip status-${app.status}`}>{statusLabels[app.status]}</span><h3>{item.dishName}</h3><p>{item.storeName}</p></div><ChevronRight /></Link>)}</div> : <div className="small-empty"><p>応募中のお手伝いはありません。</p><Link to="/home">食べたいまかないを探す</Link></div>}</section>
-    <section className="mypage-section"><div className="section-heading"><h2>食べたまかない</h2><span>{completed.length}皿</span></div>{completed.length ? <div className="eaten-grid">{completed.map(({ app, item }) => <Link to={`/application/${app.id}`} key={app.id}><Photo src={item.dishImage} alt={item.dishName} />{app.review?.again.includes('visit') && <em>また行きたい</em>}<span>{item.dishName}</span></Link>)}</div> : <div className="small-empty"><span className="bowl">🍚</span><p>お手伝いのあとに食べたまかないが、ここに並びます。</p></div>}</section>
+    <div className="stat-row"><Link to="/favorites"><b>{favorites.length}</b><span>お気に入り</span></Link><div><b>{active.length}</b><span>応募・予約中</span></div><div><b>{completed.length}</b><span>食べた</span></div></div>
+    <section className="mypage-section"><div className="section-heading"><h2>応募・予約</h2></div>{active.length ? <div className="application-list">{active.map(({ app, item }) => <Link to={recordPath(app)} className="application-card" key={app.id}><Photo src={item.dishImage} alt={item.dishName} /><div><span className={`status-chip ${isBuy(app) ? 'buy' : `status-${app.status}`}`}>{isBuy(app) ? `予約済み・${item.sale?.from ?? ''}〜` : statusLabels[app.status]}</span><h3>{item.dishName}</h3><p>{item.storeName}</p></div><ChevronRight /></Link>)}</div> : <div className="small-empty"><p>応募中のお手伝いや、予約中のまかないはありません。</p><Link to="/home">食べたいまかないを探す</Link></div>}</section>
+    <section className="mypage-section"><div className="section-heading"><h2>食べたまかない</h2><span>{completed.length}皿</span></div>{completed.length ? <div className="eaten-grid">{completed.map(({ app, item }) => <Link to={recordPath(app)} key={app.id}><Photo src={item.dishImage} alt={item.dishName} />{app.review?.again.includes('visit') && <em>また行きたい</em>}<span>{item.dishName}</span></Link>)}</div> : <div className="small-empty"><span className="bowl">🍚</span><p>食べたまかないが、ここに並びます。</p></div>}</section>
     <section className="mypage-section demo-tools"><Link to="/owner" className="secondary-button wide"><Store /> お店側の画面を見る（デモ）</Link><button className="text-button" onClick={resetDemo}>デモのデータを最初に戻す</button><Link to="/credits" className="text-link">写真のクレジット</Link></section>
   </section></Shell>
 }
@@ -375,6 +450,7 @@ function AppRoutes() {
     <Route path="/makanai/:id" element={<MakanaiDetail />} />
     <Route path="/store/:id" element={<StoreDetail />} /><Route path="/apply/:id" element={<ApplyConfirm />} />
     <Route path="/application/:applicationId" element={<ApplicationPage />} />
+    <Route path="/buy/:id" element={<BuyConfirm />} /><Route path="/order/:applicationId" element={<OrderPage />} />
     <Route path="/favorites" element={<FavoritesPage />} />
     <Route path="/mypage" element={<MyPage />} />
     <Route path="/credits" element={<CreditsPage />} />
