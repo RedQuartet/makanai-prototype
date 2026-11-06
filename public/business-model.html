@@ -163,9 +163,8 @@
   .est .aside th, .est .aside td { color: var(--muted); font-size: 13.5px; border-bottom: 0; }
   .assume { margin: 0; padding-left: 1.1em; color: var(--muted); font-size: 13.5px; line-height: 1.7; max-width: 75ch; }
 
-  .dg .dm-line { stroke: var(--money); stroke-width: 2; stroke-dasharray: 7 6; fill: none; }
-  .dg .chip { fill: var(--surface); }
-  .legend .ldm { stroke: var(--money); stroke-width: 2.5; stroke-dasharray: 6 4; }
+  .dg .chip { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+  .dg .hub-rule { stroke: var(--on-hub); stroke-width: 1; opacity: .5; }
 
   .proto-link { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; background: var(--hub); color: var(--on-hub); font-size: 14px; font-weight: 700; text-decoration: none; }
   .proto-link:hover { filter: brightness(1.08); }
@@ -196,6 +195,12 @@
   .ex-group { display: grid; gap: 10px; }
   .ex-group h3 { font-size: 15px; }
   .ex strong.tbd { font-size: 22px; }
+
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+  .rules li { padding: 16px 18px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); }
+  .rules b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .rules b span { color: var(--money); margin-right: 6px; }
+  .rules small { display: block; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -206,13 +211,13 @@
       <span>MAKANAI</span>
     </div>
     <h1>MAKANAI のビジネスモデル</h1>
-    <p class="lead">食べるか、手伝うかを選べる、町のまかないサービス。お店は期限が近い食材でまかないをつくり、学生は「安く食べる」か「手伝って食べる」かを選びます。手伝った人は、給与（地域の最低賃金以上）に加えて、まかないを無料で受け取ります。お金の入口は、店舗オーナー・自治体と商店街・地元企業の 3 つです。</p>
+    <p class="lead">食べるか、手伝うかを選べる、町のまかないサービス。お店は期限が近い食材でまかないをつくり、学生は「安く食べる」か「手伝って食べる」かを選びます。手伝った人は、給与（地域の最低賃金以上）に加えて、まかないを無料で受け取ります。お店と学生のあいだのお金（まかない代と給与）は、すべて MAKANAI が中継します。雇用契約は、お店と学生のあいだで結びます。</p>
     <a class="proto-link" href="./">プロトタイプを開く →</a>
   </header>
 
   <ol class="modes" aria-label="学生の使い方">
     <li class="mode"><b>1</b><span>見つける<small>食べたいまかないから探す。今日のおすすめ、地図、12 種類のお手伝いで絞り込める</small></span></li>
-    <li class="mode"><b>2</b><span>選ぶ<small>「安く食べる」（予約してお店で支払う）か、「手伝って食べる」（給与＋まかない無料）か</small></span></li>
+    <li class="mode"><b>2</b><span>選ぶ<small>「安く食べる」（アプリで予約・支払い）か、「手伝って食べる」（給与＋まかない無料）か</small></span></li>
     <li class="mode"><b>3</b><span>つながる<small>食べたら「また行きたい」「今度は手伝いたい」とひと言。お店の顔なじみになる</small></span></li>
   </ol>
 
@@ -222,9 +227,9 @@
       <table class="ways">
         <thead><tr><th scope="col">立場</th><th scope="col" class="buy">安く食べる</th><th scope="col" class="help">手伝って食べる</th></tr></thead>
         <tbody>
-          <tr><th scope="row">学生</th><td>まかない価格（400〜600 円）を、お店で払う<small>アプリで予約し、決まった時間に店内で食べる</small></td><td>給与（地域の最低賃金以上）を受け取り、まかないは無料<small>片付け・仕込み・接客・お祭りなど 12 種類から選ぶ</small></td></tr>
-          <tr><th scope="row">お店</th><td>捨てるはずだった食材が、売上になる</td><td>ちょっとだけ足りない人手が手に入る<small>給与＋システム利用料を払う</small></td></tr>
-          <tr><th scope="row">MAKANAI の収入</th><td>手数料を取るかは検討中</td><td>システム利用料（給与の約 30%）</td></tr>
+          <tr><th scope="row">学生</th><td>まかない価格（400〜600 円）を、アプリで払う<small>MAKANAI がお店に代わって受け取る。決まった時間に店内で食べる</small></td><td>給与（地域の最低賃金以上）を受け取り、まかないは無料<small>片付け・仕込み・接客・お祭りなど 12 種類から選ぶ</small></td></tr>
+          <tr><th scope="row">お店</th><td>捨てるはずだった食材が、売上になる<small>学生の「受け取った」の報告のあと、MAKANAI から入金</small></td><td>ちょっとだけ足りない人手が手に入る<small>給与＋システム利用料を MAKANAI に払い、MAKANAI が学生に給与を払う</small></td></tr>
+          <tr><th scope="row">MAKANAI の収入</th><td>売上からの手数料（率は検討中）</td><td>システム利用料（給与の約 30%）</td></tr>
           <tr><th scope="row">ねらい</th><td>気軽な入口。まずお店を知ってもらう</td><td>顔なじみになり、お店や町の担い手になってもらう</td></tr>
         </tbody>
       </table>
@@ -237,11 +242,20 @@
   </section>
 
   <section>
+    <div class="sec-head"><span class="eyebrow">MONEY FLOW</span><h2>お金のやりとりは MAKANAI が中継する</h2></div>
+    <ol class="rules">
+      <li><b><span>①</span>お金はすべて MAKANAI を通る</b><small>まかない代は学生がアプリで払い、MAKANAI がお店に代わって受け取ります。給与もお店から預かって、MAKANAI が学生に振り込みます。お店と学生のあいだで直接お金をやりとりしないので、「払った・払わない」のいざこざが起きません。</small></li>
+      <li><b><span>②</span>MAKANAI は中継するだけ</b><small>雇用契約は、お店と学生のあいだにだけあります。MAKANAI は雇い主ではなく、仕事の指示もしません。給与は全額を学生に払い、MAKANAI の利用料は給与から引かずに、お店が上乗せで払います。</small></li>
+      <li><b><span>③</span>報告と確認で、お金が動く</b><small>安く食べたときは、学生がアプリで「受け取った」を押すと、代金がお店の売上になります。手伝ったときは、お店がお手伝いの完了を確認すると、MAKANAI が給与を振り込みます。</small></li>
+    </ol>
+  </section>
+
+  <section>
     <div class="sec-head"><span class="eyebrow">PICTOGRAM</span><h2>ピクト図解</h2></div>
     <figure>
       <p class="scroll-hint">図は横にスクロールできます。</p>
       <div class="scroll">
-        <svg class="dg" viewBox="0 0 1180 724" role="img" aria-label="MAKANAI 運営が中央にいる。左上の決済代行会社・クラウドベンダー・保険会社から給与の振込・ITインフラ・保険を受け取り、それぞれに料金を払う。左下の自治体・商店街には担い手集め・告知・データを渡し、委託費とイベント利用料を受け取る。地元企業には学生に届く広告枠を渡し、広告掲載料を受け取る。右上の店舗オーナーには掲載・予約・応募・食材ロス管理の仕組みと給与の支払い代行を提供し、給与とシステム利用料（給与の約30%、掲載は無料）を受け取る。安く売れた分の手数料は検討中。右下の消費者にはまかないの検索・予約・応募と地域のお知らせを提供し、手伝ったときは給与を代わりに払い、好みやレビューのデータを受け取る。店舗オーナーと消費者は直接、まかないとお手伝いをやりとりし（雇用契約）、安く食べるときは消費者がまかない代をお店に払う。">
+        <svg class="dg" viewBox="0 0 1180 724" role="img" aria-label="MAKANAI 運営が中央にいて、お店と学生のあいだのお金をすべて中継する。左上の決済代行会社・クラウドベンダー・保険会社から決済機能・ITインフラ・保険を受け取り、それぞれに料金を払う。左下の自治体・商店街には担い手集め・告知・データを渡し、委託費とイベント利用料を受け取る。地元企業には学生に届く広告枠を渡し、広告掲載料を受け取る。右上の店舗オーナーには掲載・予約・応募・食材ロス管理の仕組みと、安く売れたまかないの売上を渡し、給与とシステム利用料（給与の約30%、掲載は無料）と手数料（安く売れた分、率は検討中）を受け取る。右下の消費者にはまかないの検索・予約・応募と地域のお知らせ、手伝ったときの給与を渡し、安く食べるときのまかない代と、受け取りの報告・好み・レビューのデータを受け取る。店舗オーナーと消費者が直接やりとりするのは、まかないとお手伝いだけで、雇用契約はお店と学生のあいだにある。">
           <defs>
             <marker id="ah-v" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path class="v-fill" d="M0 0L10 5L0 10z"/></marker>
             <marker id="ah-m" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path class="m-fill" d="M0 0L10 5L0 10z"/></marker>
@@ -256,7 +270,7 @@
           <text class="name" x="119" y="98" text-anchor="middle">決済代行会社</text>
           <text class="sub" x="119" y="121" text-anchor="middle">クレジットカード会社など</text>
           <line class="v-line" x1="226" y1="90" x2="418" y2="90" marker-end="url(#ah-v)"/>
-          <text class="v-t" x="322" y="80" text-anchor="middle">決済機能（給与の振込）</text>
+          <text class="v-t" x="322" y="80" text-anchor="middle">決済機能（代金・給与）</text>
           <line class="m-line" x1="418" y1="114" x2="226" y2="114" marker-end="url(#ah-m)"/>
           <text class="m-t" x="322" y="137" text-anchor="middle">¥ 決済手数料</text>
 
@@ -299,6 +313,9 @@
           <text class="hub-title" x="505" y="370" text-anchor="middle">MAKANAI</text>
           <text class="hub-sub" x="505" y="400" text-anchor="middle">町のまかない</text>
           <text class="hub-sub" x="505" y="420" text-anchor="middle">サービス</text>
+          <line class="hub-rule" x1="465" y1="600" x2="545" y2="600"/>
+          <text class="hub-sub" x="505" y="628" text-anchor="middle">お金のやりとりを</text>
+          <text class="hub-sub" x="505" y="648" text-anchor="middle">すべて中継する</text>
 
           <!-- Store owner -->
           <rect class="cust" x="840" y="70" width="320" height="150" rx="10"/>
@@ -306,14 +323,14 @@
           <text class="name" x="1000" y="152" text-anchor="middle">店舗オーナー</text>
           <text class="sub" x="1000" y="175" text-anchor="middle">個人経営の飲食店</text>
 
-          <line class="v-line" x1="592" y1="100" x2="828" y2="100" marker-end="url(#ah-v)"/>
-          <text class="v-t" x="710" y="89" text-anchor="middle">掲載・予約・応募・食材ロス管理</text>
-          <line class="v-line" x1="592" y1="146" x2="828" y2="146" marker-end="url(#ah-v)"/>
-          <text class="v-t" x="710" y="135" text-anchor="middle">給与の支払い代行</text>
-          <line class="m-line" x1="828" y1="192" x2="592" y2="192" marker-end="url(#ah-m)"/>
-          <text class="m-t" x="710" y="216" text-anchor="middle">¥ 給与 + ¥ システム利用料</text>
-          <text class="m-s" x="710" y="235" text-anchor="middle">（給与の約 30%・掲載は無料）</text>
-          <text class="m-s" x="710" y="254" text-anchor="middle">安く売れた分の手数料は検討中</text>
+          <line class="v-line" x1="592" y1="96" x2="828" y2="96" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="710" y="85" text-anchor="middle">掲載・予約・応募・食材ロス管理</text>
+          <line class="m-line" x1="592" y1="138" x2="828" y2="138" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="710" y="127" text-anchor="middle">¥ 売上（安く売れたまかない代）</text>
+          <line class="m-line" x1="828" y1="180" x2="592" y2="180" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="710" y="203" text-anchor="middle">¥ 給与 + ¥ システム利用料</text>
+          <text class="m-s" x="710" y="222" text-anchor="middle">（給与の約 30%・掲載は無料）</text>
+          <text class="m-s" x="710" y="241" text-anchor="middle">¥ 手数料（安く売れた分・率は検討中）</text>
 
           <!-- Consumer -->
           <circle class="person" cx="1000" cy="481" r="19"/>
@@ -321,35 +338,35 @@
           <text class="name" x="1000" y="596" text-anchor="middle">消費者</text>
           <text class="sub" x="1000" y="617" text-anchor="middle">地域の学生・一人暮らし</text>
 
-          <line class="v-line" x1="592" y1="478" x2="950" y2="478" marker-end="url(#ah-v)"/>
-          <text class="v-t" x="771" y="467" text-anchor="middle">まかないの検索・予約・応募・地域のお知らせ</text>
-          <line class="m-line" x1="592" y1="522" x2="950" y2="522" marker-end="url(#ah-m)"/>
-          <text class="m-t" x="771" y="511" text-anchor="middle">¥ 給与（手伝ったとき・お店の代わりに支払い）</text>
-          <line class="v-line" x1="950" y1="562" x2="592" y2="562" marker-end="url(#ah-v)"/>
-          <text class="v-t" x="771" y="586" text-anchor="middle">好み・レビューのデータ</text>
+          <line class="v-line" x1="592" y1="466" x2="950" y2="466" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="771" y="455" text-anchor="middle">まかないの検索・予約・応募・地域のお知らせ</text>
+          <line class="m-line" x1="592" y1="510" x2="950" y2="510" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="771" y="499" text-anchor="middle">¥ 給与（手伝ったとき・お店から預かって）</text>
+          <line class="m-line" x1="950" y1="554" x2="592" y2="554" marker-end="url(#ah-m)"/>
+          <text class="m-t" x="771" y="543" text-anchor="middle">¥ まかない代（安く食べるとき・アプリで）</text>
+          <line class="v-line" x1="950" y1="598" x2="592" y2="598" marker-end="url(#ah-v)"/>
+          <text class="v-t" x="771" y="587" text-anchor="middle">受け取りの報告・好み・レビューのデータ</text>
 
           <!-- Direct exchange between store owner and consumer -->
           <line class="d-line" x1="930" y1="232" x2="930" y2="452" marker-end="url(#ah-v)"/>
           <text class="v-t" x="918" y="318" text-anchor="end">まかない</text>
           <text class="sub" x="918" y="337" text-anchor="end">期限間近の食材で</text>
           <text class="sub" x="918" y="356" text-anchor="end">手伝った人には無料</text>
-          <line class="dm-line" x1="1000" y1="452" x2="1000" y2="232" marker-end="url(#ah-m)"/>
-          <rect class="chip" x="942" y="300" width="116" height="52" rx="8"/>
-          <text class="m-t" x="1000" y="322" text-anchor="middle">¥ まかない代</text>
-          <text class="m-s" x="1000" y="342" text-anchor="middle">安く食べるとき</text>
+          <rect class="chip" x="946" y="294" width="108" height="72" rx="8"/>
+          <text class="v-t" x="1000" y="318" text-anchor="middle">雇用契約は</text>
+          <text class="sub" x="1000" y="338" text-anchor="middle">お店と学生の</text>
+          <text class="sub" x="1000" y="356" text-anchor="middle">あいだだけ</text>
           <line class="d-line" x1="1070" y1="452" x2="1070" y2="232" marker-end="url(#ah-v)"/>
           <text class="v-t" x="1082" y="318">お手伝い</text>
           <text class="sub" x="1082" y="337">短時間から</text>
-          <text class="sub" x="1082" y="356">雇用契約</text>
         </svg>
       </div>
       <div class="legend" aria-label="凡例">
         <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="lv" x1="0" y1="5" x2="36" y2="5"/></svg>価値（仕組み・料理・労力・情報）</span>
         <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="lm" x1="0" y1="5" x2="36" y2="5"/></svg><span class="yen">¥</span>&nbsp;金銭</span>
-        <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="ld" x1="0" y1="5" x2="36" y2="5"/></svg>店舗と消費者の直接のやりとり</span>
-        <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="ldm" x1="0" y1="5" x2="36" y2="5"/></svg>店舗への直接の支払い（安く食べるとき）</span>
+        <span><svg viewBox="0 0 36 10" aria-hidden="true"><line class="ld" x1="0" y1="5" x2="36" y2="5"/></svg>店舗と消費者の直接のやりとり（お金は通さない）</span>
       </div>
-      <figcaption>MAKANAI へのお金の入口は 3 つです。店舗オーナーのシステム利用料（お手伝いが成立したときだけ、給与の約 30%）、自治体・商店街の委託費とイベント利用料、地元企業の広告掲載料。手伝ったときは、MAKANAI がお店の代わりに給与を払い、まかないは無料でつきます。安く食べるときは、学生がまかない代をお店に直接払います。その分から MAKANAI が手数料を取るかは検討中です。</figcaption>
+      <figcaption>お店と学生のあいだのお金は、すべて MAKANAI が中継します。安く食べるときは、学生がアプリでまかない代を払い、MAKANAI がお店に代わって受け取って、売上としてお店に渡します。手伝ったときは、お店から給与とシステム利用料を受け取り、給与を全額学生に払います。お店と学生が直接やりとりするのは、まかないとお手伝いだけです。MAKANAI の収入は、店舗オーナーのシステム利用料（お手伝いが成立したときだけ、給与の約 30%）と手数料（安く売れた分・率は検討中）、自治体・商店街の委託費とイベント利用料、地元企業の広告掲載料です。</figcaption>
     </figure>
   </section>
 
@@ -361,16 +378,16 @@
       <div class="ex-row">
         <div class="ex"><span>店舗オーナーが払う</span><strong>1,664<small>円</small></strong><small>給与 1,280 円 + システム利用料 384 円</small></div>
         <div class="ex"><span>消費者が受け取る</span><strong>1,280<small>円</small></strong><small>給与。これに加えて、まかないが無料でつく</small></div>
-        <div class="ex ours"><span>MAKANAI の収入</span><strong>384<small>円</small></strong><small>システム利用料（給与の 30%）。ここから決済手数料・保険料などを払う</small></div>
+        <div class="ex ours"><span>MAKANAI の収入</span><strong>384<small>円</small></strong><small>システム利用料（給与の 30%）。給与 1,280 円は MAKANAI が預かり、全額を学生に振り込む</small></div>
       </div>
     </div>
     <div class="ex-group">
       <h3>安く食べる（1 食）</h3>
-      <p class="ex-cap">例：まかない価格 500 円のからあげ定食を、予約して店内で食べたとき</p>
+      <p class="ex-cap">例：まかない価格 500 円のからあげ定食を、アプリで予約・支払いして、店内で食べたとき</p>
       <div class="ex-row">
-        <div class="ex"><span>消費者が払う</span><strong>500<small>円</small></strong><small>お店で支払う。「通常○円→半額」ではなく、まかない価格だけを出す</small></div>
-        <div class="ex"><span>店舗オーナーが受け取る</span><strong>500<small>円</small></strong><small>期限が近く、捨てるはずだった食材が売上になる</small></div>
-        <div class="ex ours"><span>MAKANAI の収入</span><strong class="tbd">検討中</strong><small>例：1 食 50 円の手数料なら 50 円</small></div>
+        <div class="ex"><span>消費者が払う</span><strong>500<small>円</small></strong><small>アプリで MAKANAI に払う。「通常○円→半額」ではなく、まかない価格だけを出す</small></div>
+        <div class="ex"><span>店舗オーナーが受け取る</span><strong>500<small>円 − 手数料</small></strong><small>学生の「受け取った」の報告のあと、MAKANAI から入金。捨てるはずだった食材が売上になる</small></div>
+        <div class="ex ours"><span>MAKANAI の収入</span><strong class="tbd">手数料（率は検討中）</strong><small>例：1 食 50 円なら 50 円</small></div>
       </div>
     </div>
     <p class="ex-cap">お祭りの例：20 人が 4 時間手伝うと、給与は 102,400 円、MAKANAI の収入は 30,720 円。店舗のお手伝い約 80 回分が 1 回で入ります。</p>
@@ -385,7 +402,7 @@
           <tr><th scope="row">システム利用料</th><td>15.4 万円</td><td>76.8 万円</td><td>384 万円</td></tr>
           <tr><th scope="row">地元企業の広告掲載料</th><td>4.5 万円</td><td>22.5 万円</td><td>112.5 万円</td></tr>
           <tr class="sum"><th scope="row">合計</th><td>19.9 万円</td><td>99.3 万円</td><td>496.5 万円</td></tr>
-          <tr class="aside"><th scope="row">参考：安く売る分の手数料（検討中）</th><td>6 万円</td><td>30 万円</td><td>150 万円</td></tr>
+          <tr class="aside"><th scope="row">参考：安く売れた分の手数料（率は検討中）</th><td>6 万円</td><td>30 万円</td><td>150 万円</td></tr>
           <tr class="aside"><th scope="row">広告 1 枠の売り値（3 枠）</th><td>1.5 万円</td><td>7.5 万円</td><td>37.5 万円</td></tr>
         </tbody>
       </table>
@@ -393,7 +410,7 @@
     <ul class="assume">
       <li>システム利用料：月に使う人の 20% が月 1 回、1 時間（時給 1,280 円）手伝う。1 回 384 円。</li>
       <li>広告：1 人が月 15 回目にする。地域の学生に絞った枠として、1,000 回表示あたり 1,500 円で売り、全枠が売れた場合。</li>
-      <li>参考の手数料：月に使う人の 30% が月 2 食を安く食べ、1 食 50 円の手数料を取った場合。取るかどうかは未定なので、合計には入れていません。</li>
+      <li>参考の手数料：月に使う人の 30% が月 2 食を安く食べ、1 食 50 円の手数料を取った場合。率が決まっていないので、合計には入れていません。</li>
       <li>自治体・商店街の委託費とイベント利用料は、契約ごとにこの上に足されます。</li>
       <li>すべて仮の数字です。地元企業 2〜3 社に「この枠を月 1.5 万円で買うか」を聞いて確かめます。</li>
     </ul>
@@ -406,15 +423,15 @@
       <tbody>
         <tr>
           <th scope="row">店舗オーナー</th>
-          <td data-label="渡すもの"><ul><li><span class="yen">¥</span> 給与（地域の最低賃金以上）</li><li><span class="yen">¥</span> システム利用料（給与の約 30%）</li><li>まかない（手伝った人には無料、それ以外の人にはまかない価格で）</li></ul></td>
+          <td data-label="渡すもの"><ul><li><span class="yen">¥</span> 給与（地域の最低賃金以上。MAKANAI に預ける）</li><li><span class="yen">¥</span> システム利用料（給与の約 30%）</li><li><span class="yen">¥</span> 手数料（安く売れた分・率は検討中）</li><li>まかない（手伝った人には無料、それ以外の人にはまかない価格で）</li></ul></td>
           <td class="swap" aria-hidden="true">⇄</td>
-          <td data-label="受け取るもの"><ul><li>お手伝い（人手）</li><li><span class="yen">¥</span> まかない代（安く売った分の売上）</li><li>食材ロスの削減</li><li>新しいお客さんと顔なじみ</li></ul></td>
+          <td data-label="受け取るもの"><ul><li>お手伝い（人手）</li><li><span class="yen">¥</span> 売上（安く売れたまかない代。MAKANAI から入金）</li><li>食材ロスの削減</li><li>新しいお客さんと顔なじみ</li></ul></td>
         </tr>
         <tr>
           <th scope="row">消費者</th>
-          <td data-label="渡すもの"><ul><li>お手伝い（労働）</li><li><span class="yen">¥</span> まかない代（安く食べるとき）</li><li>好み・レビューのデータ</li></ul></td>
+          <td data-label="渡すもの"><ul><li>お手伝い（労働）</li><li><span class="yen">¥</span> まかない代（安く食べるとき・アプリで MAKANAI に）</li><li>受け取りの報告・好み・レビューのデータ</li></ul></td>
           <td class="swap" aria-hidden="true">⇄</td>
-          <td data-label="受け取るもの"><ul><li><span class="yen">¥</span> 給与（手伝ったとき）</li><li>おいしいまかない</li><li>近所のお店や地域のお祭りとの出会い</li></ul></td>
+          <td data-label="受け取るもの"><ul><li><span class="yen">¥</span> 給与（手伝ったとき・MAKANAI から全額）</li><li>おいしいまかない</li><li>近所のお店や地域のお祭りとの出会い</li></ul></td>
         </tr>
         <tr>
           <th scope="row">自治体・商店街</th>
@@ -430,9 +447,9 @@
         </tr>
         <tr>
           <th scope="row">MAKANAI 運営</th>
-          <td data-label="渡すもの"><ul><li>まかないの掲載・予約・応募・食材ロス管理の仕組み</li><li>担い手集め・告知・広告枠</li><li><span class="yen">¥</span> 給与の支払い代行</li><li><span class="yen">¥</span> パートナーへの支払い</li></ul></td>
+          <td data-label="渡すもの"><ul><li>まかないの掲載・予約・応募・食材ロス管理の仕組み</li><li>担い手集め・告知・広告枠</li><li><span class="yen">¥</span> 給与（学生へ全額）</li><li><span class="yen">¥</span> 売上（お店へ）</li><li><span class="yen">¥</span> パートナーへの支払い</li></ul></td>
           <td class="swap" aria-hidden="true">⇄</td>
-          <td data-label="受け取るもの"><ul><li><span class="yen">¥</span> 給与（消費者へ渡す分）</li><li><span class="yen">¥</span> システム利用料・委託費・広告掲載料</li><li>好み・レビューのデータ</li><li>決済・IT インフラ・保険</li></ul></td>
+          <td data-label="受け取るもの"><ul><li><span class="yen">¥</span> 給与（お店から預かる）</li><li><span class="yen">¥</span> まかない代（学生から預かる）</li><li><span class="yen">¥</span> システム利用料・手数料・委託費・広告掲載料</li><li>受け取りの報告・好み・レビューのデータ</li><li>決済・IT インフラ・保険</li></ul></td>
         </tr>
       </tbody>
     </table>
@@ -441,17 +458,19 @@
   <section>
     <div class="sec-head"><span class="eyebrow">BUSINESS MODEL CANVAS</span><h2>ビジネスモデルキャンバス</h2></div>
     <div class="bmc">
-      <div class="blk kp"><h3>⑧ <b>主要パートナー</b></h3><ul><li>決済代行会社（給与の振込）</li><li>クラウドベンダー</li><li>保険会社（お手伝い中のケガ・事故）</li></ul></div>
-      <div class="blk ka"><h3>⑦ <b>主要活動</b></h3><ul><li>アプリの開発・運用</li><li>店舗・自治体・商店街・地元企業への営業</li><li>利用者（地域の学生）の集客</li><li>期限が近い食材 → まかない → 予約と募集、の仕組みづくり</li><li>お手伝いの種類（12 種類）と、当日の流れの整備</li><li>給与の支払い代行</li><li>本人確認・保険などの安全対策</li></ul></div>
+      <div class="blk kp"><h3>⑧ <b>主要パートナー</b></h3><ul><li>決済代行会社（まかない代の受け取り・給与の振込）</li><li>クラウドベンダー</li><li>保険会社（お手伝い中のケガ・事故）</li></ul></div>
+      <div class="blk ka"><h3>⑦ <b>主要活動</b></h3><ul><li>アプリの開発・運用</li><li>店舗・自治体・商店街・地元企業への営業</li><li>利用者（地域の学生）の集客</li><li>期限が近い食材 → まかない → 予約と募集、の仕組みづくり</li><li>お手伝いの種類（12 種類）と、当日の流れの整備</li><li>お金のやりとりの中継（まかない代の受け取り・売上の入金・給与の支払い）</li><li>本人確認・保険などの安全対策</li></ul></div>
       <div class="blk kr"><h3>⑥ <b>主要リソース</b></h3><ul><li>アプリ（探す・予約・応募・レビュー）</li><li>加盟店舗と地域のネットワーク</li><li>地域の学生ユーザー</li><li>好みとエリアごとの需要データ</li></ul></div>
       <div class="blk vp"><h3>② <b>価値提案</b></h3><ul><li>食べるか、手伝うかを選べる、町のまかないサービス</li><li>店舗オーナー：期限が近い食材を、売上と人手の両方に変える</li><li>消費者：安く食べるか、短時間手伝って給与＋まかない無料かを選べる。知らなかったお店と顔なじみになれる</li><li>自治体・商店街：お手伝いを集めて、地域を盛り上げる</li><li>地元企業：地域の学生に確実に届く広告枠</li></ul></div>
       <div class="blk cr"><h3>④ <b>顧客との関係</b></h3><ul><li>アプリで探して、予約・応募</li><li>「また行きたい」「今度は手伝いたい」のひと言レビュー</li><li>食べた記録と、救った食材の量</li><li>食べたあと、同じお店のお手伝いを案内（食べる → 手伝う → 顔なじみ）</li><li>店舗へ人気のまかない・予約・集まる募集をレポート</li><li>自治体へ参加人数・食品ロス削減量をレポート</li></ul></div>
       <div class="blk ch"><h3>③ <b>チャネル</b></h3><ul><li>スマホアプリ（ホームに「地域のお知らせ」枠）</li><li>SNS（まかないの写真）</li><li>大学・商店街でのチラシ、お祭りの会場</li><li>店舗・自治体への直接営業</li></ul></div>
       <div class="blk cs"><h3>① <b>顧客セグメント</b></h3><ul><li>店舗オーナー：個人経営の飲食店。余る食材と、短時間の人手不足を抱える</li><li>消費者：近所で安く食べたい、空きコマに少し働きたい地域の学生・一人暮らし</li><li>自治体・商店街：お祭りや商店街の担い手が足りない</li><li>地元企業：地域の学生に届けたい広告主</li></ul></div>
       <div class="blk co"><h3>⑨ <b>コスト構造</b></h3><ul><li>システムの開発・運用費</li><li>決済・振込手数料、保険料</li><li>営業・広告宣伝費</li><li>人件費</li></ul></div>
-      <div class="blk rs"><h3>⑤ <b>収益の流れ</b></h3><ul><li>店舗のシステム利用料：お手伝いが成立するたびに給与の約 30%（掲載は無料）</li><li>自治体・商店街：年間の委託費、お祭りのお手伝いのシステム利用料</li><li>地元企業：広告掲載料（月額の枠売り）</li><li>安く売れたまかないの手数料（検討中）</li><li>消費者からは利用料を取らない（まかない代はお店に払う）</li></ul></div>
+      <div class="blk rs"><h3>⑤ <b>収益の流れ</b></h3><ul><li>店舗のシステム利用料：お手伝いが成立するたびに給与の約 30%（掲載は無料）</li><li>自治体・商店街：年間の委託費、お祭りのお手伝いのシステム利用料</li><li>地元企業：広告掲載料（月額の枠売り）</li><li>安く売れたまかないの手数料（率は検討中）</li><li>消費者からは利用料を取らない（まかない代はお店の売上として渡す）</li></ul></div>
     </div>
   </section>
+
+  <p class="note"><b>お金の中継の考え方：</b>MAKANAI はお店と学生のあいだのお金を中継しますが、雇用契約はお店と学生のあいだにあり、MAKANAI は雇い主ではありません。お金を預かる仕組み（まかない代の受け取りと給与の支払いの代行）と、お店と学生をつなぐ事業に必要な許可は、弁護士・社労士に確認します。</p>
 
   <p class="note"><b>給与とまかないの考え方：</b>給与は地域の最低賃金以上で払います（東京都は 2026 年 10 月から時給 1,280 円。毎年秋に改定され、都道府県ごとに違います）。まかないがつくぶん、最低賃金でも選ばれる理由になります。手伝った人のまかないは、代金の代わりに働くものではありません。給与は必ずお金で払い、まかないは最低賃金に含めず、上乗せとして無料で出します。安く売るまかないは「まかない価格」だけを表示し、「通常○円→半額」のような表示はしません。レビューを書くことはお手伝いの仕事にしません。まかないの税の扱いは税理士・社労士に、お祭りの手伝いをボランティアにするか給与を払うかは主催者と、それぞれ確認します。</p>
 </main>
