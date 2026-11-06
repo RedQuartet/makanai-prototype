@@ -30,6 +30,13 @@ export interface MakanaiItem {
   ingredients: Ingredient[]
   /** お店側の画面でつくったばかりの求人 */
   fresh?: boolean
+  /** まかないを安く売るとき（手伝わずに食べたい人向け）。売る日はお手伝いと同じ日 */
+  sale?: {
+    price: number
+    from: string
+    until: string
+    remaining: number
+  }
   help: {
     kind: HelpKind
     role: string
@@ -59,8 +66,13 @@ export interface Review {
   createdAt: string
 }
 
+/** help = 手伝って食べる（応募）、buy = 安く買って食べる（予約） */
+export type ApplicationType = 'help' | 'buy'
+
 export interface Application {
   id: string
+  /** ない場合は help（前の版で保存した応募） */
+  type?: ApplicationType
   makanaiId: string
   status: ApplicationStatus
   appliedAt: string

@@ -53,6 +53,11 @@ export function jobWhen(item: MakanaiItem, date = jobDate(item)) {
   return `${dayLabel(date)} ${item.help.start}〜${endTime(item.help.start, item.help.minutes)}`
 }
 
+/** 安く買えるまかないの受け取り時間。売る日はお手伝いと同じ日 */
+export function saleWhen(item: MakanaiItem, date = jobDate(item)) {
+  return item.sale ? `${dayLabel(date)} ${item.sale.from}〜${item.sale.until}` : ''
+}
+
 export const wageOf = (help: MakanaiItem['help']) => Math.ceil(help.hourlyWage * help.minutes / 60)
 export const feeOf = (wage: number) => Math.round(wage * FEE_RATE)
 
@@ -60,8 +65,8 @@ export const yen = (amount: number) => `${amount.toLocaleString('ja-JP')}円`
 export const kg = (amount: number) => `${(Math.round(amount * 10) / 10).toLocaleString('ja-JP')}kg`
 
 export const totalKg = (item: MakanaiItem) => item.ingredients.reduce((sum, x) => sum + x.kg, 0)
-/** 1人が救う食材の量（全員分の食材を、募集人数で割る） */
-export const rescuedPerPerson = (item: MakanaiItem) => totalKg(item) / item.help.slots
+/** 1 食あたりで救う食材。期限が近い食材を、手伝う人と安く買う人のまかない全部で使い切る */
+export const rescuedPerPerson = (item: MakanaiItem) => totalKg(item) / (item.help.slots + (item.sale?.remaining ?? 0))
 
 /** 例：「鶏もも肉 1.5kg・キャベツ 2kg」 */
 export const ingredientList = (item: MakanaiItem) => item.ingredients.map(x => `${x.name} ${kg(x.kg)}`).join('・')
