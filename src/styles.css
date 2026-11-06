@@ -129,3 +129,4 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { 
 .check-field { display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; cursor:pointer; }.check-field input { width:20px; height:20px; accent-color:var(--brown); }
 .welcome-brand p:not(.welcome-vision) { line-height:1.6; }
 .completion-page .text-button { display:block; margin:14px auto 0; }
+.way-filter { margin-bottom:20px; }.way-filter button { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:0 6px; white-space:nowrap; }.way-filter svg { width:15px; height:15px; flex:none; }.way-filter button.on:nth-child(2) { background:#fff1dc; color:#8a5a22; }.way-filter button.on:nth-child(3) { background:var(--brown); color:white; }

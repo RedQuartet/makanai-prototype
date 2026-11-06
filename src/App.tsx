@@ -59,16 +59,20 @@ function FavoriteButton({ id, light = false }: { id: string; light?: boolean }) 
   return <button className={`favorite-button ${active ? 'active' : ''} ${light ? 'light' : ''}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(id) }} aria-label={active ? 'お気に入りから削除' : 'お気に入りに追加'}><Heart fill={active ? 'currentColor' : 'none'} /></button>
 }
 
+/** 一覧で選ぶ食べ方。all は両方のボタンを出す */
+type Way = 'all' | 'buy' | 'help'
+
 /** まかないの食べ方。安く買う（お店が売っているときだけ）か、手伝って給与とまかないをもらうか */
-function WayChoices({ item }: { item: MakanaiItem }) {
-  const { help, sale } = item
-  return <div className={`way-choices ${sale ? '' : 'single'}`}>
+function WayChoices({ item, way = 'all' }: { item: MakanaiItem; way?: Way }) {
+  const { help } = item
+  const sale = way === 'help' ? undefined : item.sale
+  return <div className={`way-choices ${sale && way !== 'buy' ? '' : 'single'}`}>
     {sale && <Link className="way-choice buy" to={`/buy/${item.id}`}><small><ShoppingBag />安く食べる</small><b>{yen(sale.price)}</b><span>{saleWhen(item)}</span></Link>}
-    <Link className="way-choice help" to={`/store/${item.id}`}><small><KindIcon kind={help.kind} />手伝って食べる・{help.kind}</small><b>給与 {yen(wageOf(help))}</b><span>＋まかない無料・{jobWhen(item)}</span></Link>
+    {way !== 'buy' && <Link className="way-choice help" to={`/store/${item.id}`}><small><KindIcon kind={help.kind} />手伝って食べる・{help.kind}</small><b>給与 {yen(wageOf(help))}</b><span>＋まかない無料・{jobWhen(item)}</span></Link>}
   </div>
 }
 
-function DishCard({ item }: { item: MakanaiItem }) {
+function DishCard({ item, way = 'all' }: { item: MakanaiItem; way?: Way }) {
   const { visitedStores } = useDemo()
   const first = item.ingredients[0]
   return <article className="dish-card">
@@ -81,8 +85,8 @@ function DishCard({ item }: { item: MakanaiItem }) {
       {first && <p className="rescue-line"><Leaf />使う食材：期限間近の{first.name} {kg(first.kg)}{item.ingredients.length > 1 ? ' ほか' : ''}</p>}
       <p className="dish-description">{item.shortDescription}</p>
       <div className="tag-row">{item.tags.map(tag => <span key={tag}>#{tag}</span>)}</div>
-      <WayChoices item={item} />
-      {!item.sale && <p className="way-note">このまかないは、手伝った人だけが食べられます。</p>}
+      <WayChoices item={item} way={way} />
+      {!item.sale && way === 'all' && <p className="way-note">このまかないは、手伝った人だけが食べられます。</p>}
     </div>
   </article>
 }
@@ -171,7 +175,8 @@ function HomePage() {
   const [category, setCategory] = useState('すべて')
   const [kind, setKind] = useState<HelpKind | 'すべて'>('すべて')
   const [area, setArea] = useState('すべてのエリア')
-  const [sort, setSort] = useState<'recommend' | 'rating' | 'distance'>('recommend')
+  const [way, setWay] = useState<Way>('all')
+  const [sort, setSort] = useState<'recommend' | 'rating' | 'distance' | 'price' | 'wage'>('recommend')
   const [mapOpen, setMapOpen] = useState(false)
   const [drawnIds, setDrawnIds] = useState<string[] | null>(null)
   const todayKey = toDateKey(new Date())
@@ -183,9 +188,13 @@ function HomePage() {
     const matchesKind = kind === 'すべて' || item.help.kind === kind
     const matchesArea = area === 'すべてのエリア' || item.area.startsWith(area)
     const matchesDrawing = !drawnIds || drawnIds.includes(item.id)
-    return matchesQuery && matchesCategory && matchesKind && matchesArea && matchesDrawing
-  }).sort((a, b) => sort === 'rating' ? b.rating - a.rating || b.reviewCount - a.reviewCount : sort === 'distance' ? a.access.minutes - b.access.minutes : a.help.dayOffset - b.help.dayOffset || (b.rating * 10 - b.access.minutes / 5) - (a.rating * 10 - a.access.minutes / 5))
-  const reset = () => { setSearch(''); setCategory('すべて'); setKind('すべて'); setArea('すべてのエリア'); setDrawnIds(null) }
+    const matchesWay = way !== 'buy' || !!item.sale
+    return matchesQuery && matchesCategory && matchesKind && matchesArea && matchesDrawing && matchesWay
+  }).sort((a, b) => sort === 'price' ? (a.sale?.price ?? Infinity) - (b.sale?.price ?? Infinity) : sort === 'wage' ? wageOf(b.help) - wageOf(a.help) : sort === 'rating' ? b.rating - a.rating || b.reviewCount - a.reviewCount : sort === 'distance' ? a.access.minutes - b.access.minutes : a.help.dayOffset - b.help.dayOffset || (b.rating * 10 - b.access.minutes / 5) - (a.rating * 10 - a.access.minutes / 5))
+  const reset = () => { setSearch(''); setCategory('すべて'); setKind('すべて'); setArea('すべてのエリア'); setDrawnIds(null); setWay('all') }
+  /** 食べ方を変えたら、その食べ方にない並び替えはおすすめ順に戻す */
+  const chooseWay = (next: Way) => { setWay(next); if ((sort === 'price' && next !== 'buy') || (sort === 'wage' && next !== 'help')) setSort('recommend') }
+  const sorts = [['recommend', 'おすすめ順'], ...(way === 'buy' ? [['price', '安い順']] : way === 'help' ? [['wage', '給与が高い順']] : []), ['rating', '評価が高い順'], ['distance', '距離が近い順']] as [typeof sort, string][]
   const kinds = helpKinds.filter(k => items.some(x => x.help.kind === k))
   return <Shell>
     <section className="home-intro"><div><span className="hello">こんにちは、{user.name.split(' ')[1]}さん</span><h1>今日は何が<br /><em>食べたい？</em></h1></div></section>
@@ -198,9 +207,11 @@ function HomePage() {
     {drawnIds && <div className="drawn-chip"><span>地図で囲ったエリア：{drawnIds.length}件</span><button onClick={() => setDrawnIds(null)}>解除</button></div>}
     <div className="category-scroll" role="group" aria-label="料理のカテゴリー">{categories.map(c => <button key={c} className={category === c ? 'active' : ''} aria-pressed={category === c} onClick={() => setCategory(c)}>{c}</button>)}</div>
     <div className="kind-scroll" role="group" aria-label="お手伝いの種類"><span className="kind-scroll-label">お手伝い</span><button className={kind === 'すべて' ? 'active' : ''} aria-pressed={kind === 'すべて'} onClick={() => setKind('すべて')}>すべて</button>{kinds.map(k => <button key={k} className={kind === k ? 'active' : ''} aria-pressed={kind === k} onClick={() => setKind(k)}><KindIcon kind={k} />{k}</button>)}</div>
-    <section className="list-section"><div className="section-heading"><div><span className="eyebrow">NEAR YOU</span><h2>{drawnIds ? '囲ったエリアのまかない' : area === 'すべてのエリア' ? '現在地からのおすすめ' : `${area}のまかない`}</h2><p className="near-note"><LocateFixed />三軒茶屋駅付近（デモの現在地）</p></div><span>{results.length}品</span></div>
-      <div className="sort-row"><span>並び替え</span><div>{([['recommend','おすすめ順'],['rating','評価が高い順'],['distance','距離が近い順']] as const).map(([value,label]) => <button key={value} className={sort === value ? 'active' : ''} onClick={() => setSort(value)}>{label}</button>)}</div></div>
-      <div className="dish-grid">{results.map(item => <DishCard key={item.id} item={item} />)}</div>
+    <section className="list-section">
+      <div className="segmented way-filter" role="group" aria-label="食べ方">{([['all', 'すべて', null], ['buy', '安く食べる', <ShoppingBag key="i" />], ['help', '手伝って食べる', <HandHelping key="i" />]] as const).map(([value, label, icon]) => <button key={value} className={way === value ? 'on' : ''} aria-pressed={way === value} onClick={() => chooseWay(value)}>{icon}{label}</button>)}</div>
+      <div className="section-heading"><div><span className="eyebrow">NEAR YOU</span><h2>{drawnIds ? '囲ったエリアのまかない' : area === 'すべてのエリア' ? '現在地からのおすすめ' : `${area}のまかない`}</h2><p className="near-note"><LocateFixed />三軒茶屋駅付近（デモの現在地）</p></div><span>{results.length}品</span></div>
+      <div className="sort-row"><span>並び替え</span><div>{sorts.map(([value, label]) => <button key={value} className={sort === value ? 'active' : ''} aria-pressed={sort === value} onClick={() => setSort(value)}>{label}</button>)}</div></div>
+      <div className="dish-grid">{results.map(item => <DishCard key={item.id} item={item} way={way} />)}</div>
       {!results.length && <div className="empty-state"><span>🍚</span><h2>ぴったりのまかないが見つかりませんでした</h2><p>検索や絞り込みを変えてみてください。</p><button className="secondary-button" onClick={reset}>条件をリセット</button></div>}
     </section>
     {mapOpen && <AreaDrawModal onClose={() => setMapOpen(false)} onApply={(ids) => { setDrawnIds(ids); setArea('すべてのエリア'); setMapOpen(false) }} />}
