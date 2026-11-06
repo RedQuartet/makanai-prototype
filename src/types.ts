@@ -97,3 +97,28 @@ export interface StockItem {
   kg: number
   daysLeft: number
 }
+
+/** お店がこれまでに出したまかない。学生の画面で、お店の実績として写真つきで見せる */
+export interface PastMakanai {
+  name: string
+  image: string
+  /** 何日前に出したか */
+  daysAgo: number
+  /** 商店街のイベントなど、日付の代わりに見せる名前 */
+  occasion?: string
+  /** 手伝って食べた人 */
+  helped: number
+  /** 安く買って食べた人（売らなかった回は 0） */
+  bought: number
+  /** 食べた学生のひとこと */
+  voice: string
+}
+
+export interface StoreHistory {
+  /** MAKANAI でまかないを出した回数 */
+  times: number
+  /** 食べた学生（のべ人数） */
+  students: number
+  /** 新しい順 */
+  past: PastMakanai[]
+}

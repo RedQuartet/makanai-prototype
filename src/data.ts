@@ -1,5 +1,5 @@
 import { addDays, toDateKey } from './format'
-import type { Application, HelpKind, MakanaiItem, OwnerApplicant, StockItem } from './types'
+import type { Application, HelpKind, MakanaiItem, OwnerApplicant, StockItem, StoreHistory } from './types'
 
 /** Unsplash の写真（Unsplash License）。撮影者は credits.ts にまとめている */
 const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=85`
@@ -184,3 +184,78 @@ export const rolePresets: { kind: HelpKind; role: string; detail: string }[] = [
   { kind: 'メニューづくり', role: 'メニュー・黒板 POP づくり', detail: 'おすすめの一品を、店先の黒板やメニューに書きます。' }
 ]
 export const transportOptions = ['実費支給（上限 500 円）', 'なし（近所の方向け）']
+
+/** お店がこれまでに出したまかない（デモの実績）。写真は Unsplash、撮影者は credits.ts */
+export const storeHistory: Record<string, StoreHistory> = {
+  'まかない食堂 やまだ': { times: 24, students: 91, past: [
+    { name: '肉野菜炒め定食', image: unsplash('1745123129024-d97c4b71ed4d'), daysAgo: 6, helped: 3, bought: 5, voice: '野菜たっぷりで、ご飯がすすんだ。' },
+    { name: '照りマヨチキン丼', image: unsplash('1791386804677-815379da3e2e'), daysAgo: 13, helped: 2, bought: 7, voice: '甘辛のたれとマヨがあう。大盛りにしてもらえた！' },
+    { name: 'チキンカツ定食', image: unsplash('1693129361452-f9a777fe625e'), daysAgo: 20, helped: 3, bought: 4, voice: '揚げたてでサクサク。キャベツもたっぷり。' },
+    { name: '温玉のせ牛丼', image: unsplash('1761064864527-d428a88cd4f5'), daysAgo: 27, helped: 3, bought: 0, voice: '片付けのあとに食べる牛丼が最高だった。' },
+  ] },
+  'らぁめん こはる': { times: 15, students: 52, past: [
+    { name: '醤油ラーメン', image: unsplash('1695389189682-bab675486f83'), daysAgo: 5, helped: 2, bought: 6, voice: 'あっさりなのに、だしがしっかり。' },
+    { name: '担々麺', image: unsplash('1637024698421-533d83c7b883'), daysAgo: 12, helped: 2, bought: 5, voice: 'ほどよい辛さで、ごまの香りがいい。' },
+    { name: '昔ながらの中華そば', image: unsplash('1509680859026-7d8cfc6894f4'), daysAgo: 19, helped: 2, bought: 0, voice: 'なるとがのった、ほっとする一杯。' },
+    { name: 'パラパラチャーハン', image: unsplash('1603133872878-684f208fb84b'), daysAgo: 26, helped: 2, bought: 8, voice: 'パラパラで、これだけでも満足。' },
+  ] },
+  '洋食キッチン ひなた': { times: 31, students: 118, past: [
+    { name: '昔ながらのナポリタン', image: unsplash('1713561058969-793049b01712'), daysAgo: 4, helped: 2, bought: 9, voice: 'ケチャップの甘さがなつかしい味。' },
+    { name: '鉄板ハンバーグ', image: unsplash('1779954744887-7bdc1f73a39a'), daysAgo: 11, helped: 2, bought: 6, voice: '鉄板でジュージューのまま出てきて感動。' },
+    { name: 'ビーフシチュー', image: unsplash('1689860892307-7db54ab276ba'), daysAgo: 18, helped: 2, bought: 0, voice: 'お肉がほろほろ。洗い物のあとに沁みた。' },
+    { name: 'マカロニグラタン', image: unsplash('1768204039572-9e62db7b39fd'), daysAgo: 25, helped: 2, bought: 7, voice: 'チーズの焼き目がきれいで、熱々だった。' },
+  ] },
+  'カフェ こもれび': { times: 19, students: 64, past: [
+    { name: 'キーマカレー', image: unsplash('1792731885088-a12c39a50130'), daysAgo: 7, helped: 3, bought: 0, voice: 'ひき肉と野菜がたっぷり。スパイスがやさしい。' },
+    { name: '手づくりコロッケのカレー', image: unsplash('1694953593181-6ce423500712'), daysAgo: 14, helped: 3, bought: 5, voice: 'コロッケもお店の手づくりだった。' },
+    { name: 'チキンと野菜のスープカレー', image: unsplash('1708782344137-21c48d98dfcc'), daysAgo: 21, helped: 2, bought: 0, voice: 'じゃがいもがほくほく。寒い日にうれしい。' },
+    { name: '焼き野菜のサンドイッチ', image: unsplash('1655279562015-047c3da9a271'), daysAgo: 28, helped: 2, bought: 4, voice: 'パンがかりっとしていて、野菜がたっぷり。' },
+  ] },
+  '海の台所 なぎ': { times: 12, students: 37, past: [
+    { name: '刺身の盛り合わせ定食', image: unsplash('1754291815869-6474f5b3c365'), daysAgo: 3, helped: 2, bought: 4, voice: 'その朝にとれた魚だそう。とにかく新鮮。' },
+    { name: 'アジフライ定食', image: unsplash('1724902934430-61202d000246'), daysAgo: 10, helped: 2, bought: 5, voice: 'ふわふわのアジ。タルタルも手づくり。' },
+    { name: 'えび天丼', image: unsplash('1570078362689-c57c33cca104'), daysAgo: 17, helped: 2, bought: 0, voice: 'えびが大きくて、たれは甘め。' },
+    { name: '小鉢がならぶ和定食', image: unsplash('1642821199328-a3bcdc821552'), daysAgo: 31, helped: 2, bought: 3, voice: '少しずつ、いろいろ食べられてうれしい。' },
+  ] },
+  'パスタ食堂 ソラ': { times: 9, students: 26, past: [
+    { name: 'カルボナーラ', image: unsplash('1764586119076-61711e8ed25a'), daysAgo: 8, helped: 2, bought: 0, voice: '濃厚だけど重くない。卵がとろっと。' },
+    { name: 'バジルのジェノベーゼ', image: unsplash('1743352388509-835796029c79'), daysAgo: 15, helped: 2, bought: 0, voice: 'バジルの香りがすごい。色もきれい。' },
+    { name: 'トマトとバジルのスパゲッティ', image: unsplash('1598866594230-a7c12756260f'), daysAgo: 22, helped: 2, bought: 3, voice: 'トマトの酸味がちょうどいい。' },
+    { name: 'ベーコンのリガトーニ', image: unsplash('1735640268811-9c614c08b0dc'), daysAgo: 36, helped: 2, bought: 0, voice: 'もちもちのショートパスタ。ベーコンが香ばしい。' },
+  ] },
+  'ごはん処 むぎ': { times: 14, students: 40, past: [
+    { name: 'ハンバーグ定食', image: unsplash('1748754064785-047f47f0d603'), daysAgo: 6, helped: 2, bought: 4, voice: 'ふっくらハンバーグ。みそ汁もおいしい。' },
+    { name: '牛すき鍋定食', image: unsplash('1646299501330-c46c84c0c936'), daysAgo: 20, helped: 2, bought: 0, voice: '甘めの割り下で、ご飯がすすむ。' },
+    { name: 'ざるそば', image: unsplash('1758945185414-d9e08cb60baf'), daysAgo: 64, helped: 2, bought: 3, voice: 'のどごしがよくて、暑い日にぴったりだった。' },
+    { name: '冬の寄せ鍋', image: unsplash('1793164449712-4fee706868c6'), daysAgo: 290, helped: 3, bought: 0, voice: 'みんなで鍋をかこんで、親せきの家みたいだった。' },
+  ] },
+  '餃子の店 まるふく': { times: 21, students: 77, past: [
+    { name: 'もちもち水餃子', image: unsplash('1716834092803-08c8dca5226f'), daysAgo: 4, helped: 3, bought: 6, voice: '皮がもちもち。包むところも見せてもらえた。' },
+    { name: '麻婆豆腐', image: unsplash('1788603930622-636954e00065'), daysAgo: 11, helped: 2, bought: 5, voice: '山椒がきいていて、ご飯がとまらない。' },
+    { name: 'パリパリ春巻き', image: unsplash('1787273670681-b1886c2807a3'), daysAgo: 18, helped: 3, bought: 0, voice: '皮がパリパリで、中の具はとろっと。' },
+    { name: '小籠包', image: unsplash('1779333277496-a5106680169c'), daysAgo: 25, helped: 2, bought: 6, voice: 'スープがたっぷり。やけどに注意！' },
+  ] },
+  'ひだまり通り商店街 秋まつり': { times: 4, students: 61, past: [
+    { name: 'みんなで焼いたたこ焼き', image: unsplash('1751094364516-02b351f9c277'), daysAgo: 76, occasion: '夏まつり', helped: 8, bought: 12, voice: 'みんなで焼いた最後のひとつが、一番おいしかった。' },
+    { name: '焼き鳥', image: unsplash('1775379995350-43098b52d8ed'), daysAgo: 90, occasion: '盆おどり大会', helped: 6, bought: 9, voice: '屋台のうらで食べる焼き鳥は特別。' },
+    { name: '菜めしのおにぎり', image: unsplash('1757961047498-198b406685ed'), daysAgo: 216, occasion: '春のお花見', helped: 5, bought: 0, voice: '桜の下で、商店街の人たちと食べた。' },
+    { name: '大根たっぷりのおでん', image: unsplash('1761064392867-9001ed23a8a8'), daysAgo: 321, occasion: '年末の夜まわり', helped: 4, bought: 0, voice: '夜まわりのあとの、あったかいおでん。' },
+  ] },
+  'パン工房 ひつじ雲': { times: 17, students: 55, past: [
+    { name: 'クロワッサンサンド', image: unsplash('1771285119308-c1222ed84022'), daysAgo: 5, helped: 2, bought: 6, voice: '前の日のクロワッサンとは思えないサクサク感。' },
+    { name: '目玉焼きトースト', image: unsplash('1525351484163-7529414344d8'), daysAgo: 12, helped: 2, bought: 4, voice: '朝のお手伝いのあとのごほうび。' },
+    { name: '厚焼きたまごサンド', image: unsplash('1780130779205-7b809c225a83'), daysAgo: 19, helped: 2, bought: 7, voice: 'たまごがふわふわで分厚い！' },
+    { name: 'アスパラのキッシュ', image: unsplash('1721460195314-b18fa6e64a10'), daysAgo: 33, helped: 2, bought: 0, voice: '旬のアスパラがたっぷり入っていた。' },
+  ] },
+  'とんかつ ひより': { times: 22, students: 84, past: [
+    { name: '鉄板みそかつ定食', image: unsplash('1770966666346-fbfde1f89a33'), daysAgo: 3, helped: 3, bought: 5, voice: '甘めのみそだれが、ご飯にあう。' },
+    { name: 'メンチカツ定食', image: unsplash('1770966666361-b448e634e163'), daysAgo: 10, helped: 2, bought: 8, voice: 'かじると肉汁がじゅわっと出てくる。' },
+    { name: 'カツカレー', image: unsplash('1784955725783-76d170a05619'), daysAgo: 17, helped: 3, bought: 0, voice: 'カツもカレーも大盛りで大満足。' },
+    { name: 'ひれカツサンド', image: unsplash('1771398269757-0763f7ecd52c'), daysAgo: 24, helped: 2, bought: 6, voice: 'ソースがしみたパンがおいしい。' },
+  ] },
+  'お好み焼き てっぺい': { times: 11, students: 33, past: [
+    { name: 'ねぎ焼き', image: unsplash('1700324675741-f79f5bad651c'), daysAgo: 6, helped: 2, bought: 4, voice: 'ねぎがたっぷり。しょうゆ味でさっぱり。' },
+    { name: 'たこ焼き', image: unsplash('1756918341033-c03cfbccee63'), daysAgo: 13, helped: 2, bought: 5, voice: '外はかりっと、中はとろっと。' },
+    { name: '鉄板ソース焼きそば', image: unsplash('1585032226651-759b368d7246'), daysAgo: 20, helped: 2, bought: 0, voice: '鉄板で焼いた麺が香ばしい。' },
+  ] },
+}
