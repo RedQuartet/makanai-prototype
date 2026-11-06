@@ -42,6 +42,7 @@ function Welcome() {
       <span className="welcome-mark"><UtensilsCrossed /></span>
       <h1>MAKANAI</h1>
       <p>まかないから探す求人サービス</p>
+      <p className="welcome-vision">町じゅうが、<br />同じ釜の飯を食べる仲間になる。</p>
       <ul className="welcome-steps"><li><Search />探す</li><li><HandHelping />手伝う</li><li><Coins />給与＋まかない</li></ul>
     </div>
     <div className="welcome-actions">
