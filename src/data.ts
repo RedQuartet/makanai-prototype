@@ -153,9 +153,10 @@ export function demoHistory(today = new Date()): Application[] {
 export const ownerStoreId = 'karaage-yamada'
 
 /** お店の画面でつくる求人のうち、写真を用意してある料理（デモ用）。料理名がすべての言葉を含めば、その写真を使う。
- *  「豚バラとキャベツの味噌炒め定食」は、ひらがなの「みそ」や言い回しの違いでも合うようにしてある */
+ *  「豚バラとキャベツの味噌炒め定食」は、ひらがなの「みそ」や言い回しの違いでも合うようにしてある。
+ *  写真は Wikimedia Commons の「Twice cooked pork with soft-boiled egg set meal of Matsuya.jpg」（回鍋肉定食：豚肉とキャベツの味噌炒め・ご飯・味噌汁） */
 export const preparedDishPhotos: { words: string[][]; image: string }[] = [
-  { words: [['キャベツ', 'きゃべつ'], ['味噌', 'みそ', 'ミソ'], ['炒め', 'いため']], image: 'https://d8j0ntlcm91z4.cloudfront.net/user_3KSScY2HeF874nps5TymxBz8Nyh/hf_20261120_051138_7c7d4f40-1b14-4291-8901-798780b69f0e.png' }
+  { words: [['キャベツ', 'きゃべつ'], ['味噌', 'みそ', 'ミソ'], ['炒め', 'いため']], image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Twice_cooked_pork_with_soft-boiled_egg_set_meal_of_Matsuya.jpg?width=1280' }
 ]
 
 export function preparedPhotoFor(dishName: string) {
