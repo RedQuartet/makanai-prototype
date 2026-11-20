@@ -1,6 +1,6 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Bell, CalendarDays, Check, ChevronRight, Home, Leaf, Plus, ShoppingBag, Ticket, UserRound, UsersRound, UtensilsCrossed } from 'lucide-react'
+import { ArrowRight, Bell, CalendarDays, Check, ChevronDown, ChevronRight, Home, Leaf, Plus, ShoppingBag, Ticket, UserRound, UsersRound, UtensilsCrossed } from 'lucide-react'
 import { categories, demoUser, helpKinds, minimumWage, ownerMonthBase, ownerPastReviews, ownerStock, ownerStoreId, rolePresets, statusLabels, transportOptions } from './data'
 import { isBuy, useDemo } from './demo'
 import { dayLabel, durationLabel, endTime, feeOf, fromDateKey, jobWhen, kg, monthDay, rescuedPerPerson, saleWhen, wageOf, yen } from './format'
@@ -133,6 +133,18 @@ function menuIdeas(chosen: StockItem[]) {
   return ideas.slice(0, 3)
 }
 
+/** ふだんは閉じておき、細かく決めたいときだけ開く項目。閉じている間は、いまの設定を 1 行で見せる。
+ *  forceOpen（入力のまちがいがある）の間は閉じられない。直したあとも、入力中の欄が消えないよう開いたままにする */
+function MoreOptions({ summary, forceOpen = false, children }: { summary: string; forceOpen?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  useEffect(() => { if (forceOpen) setOpen(true) }, [forceOpen])
+  const shown = open || forceOpen
+  return <div className="more-options">
+    <button type="button" className="details-toggle" aria-expanded={shown} onClick={() => setOpen(!shown)}><b>詳細</b><small>{shown ? '閉じる' : summary}</small><ChevronDown /></button>
+    {shown && <div className="more-body">{children}</div>}
+  </div>
+}
+
 export function OwnerNewJob() {
   const { items, usedStock, publishJob } = useDemo()
   const navigate = useNavigate()
@@ -189,39 +201,43 @@ export function OwnerNewJob() {
     <fieldset className="form-step"><legend><b>2</b>まかないを決める</legend>
       <label className="field" htmlFor="job-name"><span>まかないの名前</span><input id="job-name" value={name} maxLength={30} onChange={e => setName(e.target.value)} placeholder="例：豚バラとキャベツの味噌炒め定食" /></label>
       {menuIdeas(chosen).length > 0 && <div className="idea-row"><small>選んだ食材からの候補</small>{menuIdeas(chosen).map(idea => <button type="button" key={idea} className={name === idea ? 'on' : ''} onClick={() => setName(idea)}>{idea}</button>)}</div>}
-      <label className="field" htmlFor="job-category"><span>カテゴリ</span><select id="job-category" value={category} onChange={e => setCategory(e.target.value as Category)}>{categories.filter(c => c !== 'すべて').map(c => <option key={c}>{c}</option>)}</select></label>
+      <MoreOptions summary={`カテゴリ：${category}`}>
+        <label className="field" htmlFor="job-category"><span>カテゴリ</span><select id="job-category" value={category} onChange={e => setCategory(e.target.value as Category)}>{categories.filter(c => c !== 'すべて').map(c => <option key={c}>{c}</option>)}</select></label>
+      </MoreOptions>
     </fieldset>
 
     <fieldset className="form-step"><legend><b>3</b>お手伝いの条件を決める</legend>
       <label className="field" htmlFor="job-role"><span>お手伝いの内容</span><input id="job-role" value={role} maxLength={30} onChange={e => setRole(e.target.value)} /></label>
       <div className="idea-row">{rolePresets.map(preset => <button type="button" key={preset.role} className={role === preset.role ? 'on' : ''} onClick={() => { setRole(preset.role); setKind(preset.kind); setDetail(preset.detail) }}>{preset.role}</button>)}</div>
-      <label className="field" htmlFor="job-detail"><span>何をするか（学生に見せる説明）</span><textarea id="job-detail" rows={2} value={detail} maxLength={60} onChange={e => setDetail(e.target.value)} /></label>
-      <label className="field" htmlFor="job-kind"><span>お手伝いの種類（学生側の絞り込みに使います）</span><select id="job-kind" value={kind} onChange={e => setKind(e.target.value as HelpKind)}>{helpKinds.map(k => <option key={k}>{k}</option>)}</select></label>
       <div className="field"><span>日にち</span><div className="segmented" role="group" aria-label="日にち">{['今日', '明日', 'あさって'].map((label, i) => <button type="button" key={label} className={dayOffset === i ? 'on' : ''} aria-pressed={dayOffset === i} onClick={() => setDayOffset(i)}>{label}</button>)}</div></div>
       <div className="field-row">
         <label className="field" htmlFor="job-start"><span>開始時刻</span><input id="job-start" type="time" step={900} value={start} onChange={e => setStart(e.target.value)} /></label>
         <label className="field" htmlFor="job-minutes"><span>時間</span><select id="job-minutes" value={minutes} onChange={e => setMinutes(Number(e.target.value))}>{[30, 45, 60, 90, 120].map(m => <option key={m} value={m}>{durationLabel(m)}</option>)}</select></label>
       </div>
-      <div className="field-row">
-        <label className="field" htmlFor="job-slots"><span>募集人数</span><select id="job-slots" value={slots} onChange={e => setSlots(Number(e.target.value))}>{[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}人</option>)}</select></label>
-        <label className="field" htmlFor="job-wage"><span>時給（円）</span><input id="job-wage" type="number" inputMode="numeric" min={minimumWage.amount} step={10} value={hourlyWage || ''} aria-invalid={!!wageError} aria-describedby="wage-note" onChange={e => setHourlyWage(Number(e.target.value))} /></label>
-      </div>
-      <p id="wage-note" className={`form-note ${wageError ? 'error' : ''}`}>{wageError || `${minimumWage.area}の最低賃金は ${yen(minimumWage.amount)}（${minimumWage.since}から）。まかないは給与に含めず、無料で出します。`}</p>
-      <label className="field" htmlFor="job-transport"><span>交通費</span><select id="job-transport" value={transport} onChange={e => setTransport(e.target.value)}>{transportOptions.map(t => <option key={t}>{t}</option>)}</select></label>
+      <MoreOptions summary={`${slots}人・時給 ${yen(hourlyWage || 0)}・交通費 ${transport.replace(/（.*）/, '')}`} forceOpen={!!wageError}>
+        <label className="field" htmlFor="job-detail"><span>何をするか（学生に見せる説明）</span><textarea id="job-detail" rows={2} value={detail} maxLength={60} onChange={e => setDetail(e.target.value)} /></label>
+        <label className="field" htmlFor="job-kind"><span>お手伝いの種類（学生側の絞り込みに使います）</span><select id="job-kind" value={kind} onChange={e => setKind(e.target.value as HelpKind)}>{helpKinds.map(k => <option key={k}>{k}</option>)}</select></label>
+        <div className="field-row">
+          <label className="field" htmlFor="job-slots"><span>募集人数</span><select id="job-slots" value={slots} onChange={e => setSlots(Number(e.target.value))}>{[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}人</option>)}</select></label>
+          <label className="field" htmlFor="job-wage"><span>時給（円）</span><input id="job-wage" type="number" inputMode="numeric" min={minimumWage.amount} step={10} value={hourlyWage || ''} aria-invalid={!!wageError} aria-describedby="wage-note" onChange={e => setHourlyWage(Number(e.target.value))} /></label>
+        </div>
+        <p id="wage-note" className={`form-note ${wageError ? 'error' : ''}`}>{wageError || `${minimumWage.area}の最低賃金は ${yen(minimumWage.amount)}（${minimumWage.since}から）。まかないは給与に含めず、無料で出します。`}</p>
+        <label className="field" htmlFor="job-transport"><span>交通費</span><select id="job-transport" value={transport} onChange={e => setTransport(e.target.value)}>{transportOptions.map(t => <option key={t}>{t}</option>)}</select></label>
+      </MoreOptions>
     </fieldset>
 
     <fieldset className="form-step"><legend><b>4</b>まかないを安く売る（選べます）</legend>
       <label className="check-field"><input type="checkbox" checked={selling} onChange={e => setSelling(e.target.checked)} /><span>手伝わない人にも、まかないを安く売る</span></label>
       {selling && <>
-        <div className="field-row">
-          <label className="field" htmlFor="sale-price"><span>まかない価格（円）</span><input id="sale-price" type="number" inputMode="numeric" min={100} step={50} value={salePrice || ''} onChange={e => setSalePrice(Number(e.target.value))} /></label>
+        <label className="field" htmlFor="sale-price"><span>まかない価格（円）</span><input id="sale-price" type="number" inputMode="numeric" min={100} step={50} value={salePrice || ''} onChange={e => setSalePrice(Number(e.target.value))} /></label>
+        <MoreOptions summary={`${saleCount}食・受け取り ${saleFrom}〜${saleUntil}`} forceOpen={!saleFrom || !saleUntil}>
           <label className="field" htmlFor="sale-count"><span>売る数</span><select id="sale-count" value={saleCount} onChange={e => setSaleCount(Number(e.target.value))}>{[3, 5, 8, 10, 15].map(n => <option key={n} value={n}>{n}食</option>)}</select></label>
-        </div>
-        <div className="field-row">
-          <label className="field" htmlFor="sale-from"><span>受け取り（から）</span><input id="sale-from" type="time" step={900} value={saleFrom} onChange={e => setSaleFrom(e.target.value)} /></label>
-          <label className="field" htmlFor="sale-until"><span>受け取り（まで）</span><input id="sale-until" type="time" step={900} value={saleUntil} onChange={e => setSaleUntil(e.target.value)} /></label>
-        </div>
-        <p className="form-note">学生はアプリで予約と支払いをします。代金は MAKANAI がお店に代わって受け取り、学生が「受け取った」と報告したあと、お店の売上として振り込みます。お店で現金のやりとりはありません。「通常○円→半額」のような表示は使わず、まかない価格だけを出します。</p>
+          <div className="field-row">
+            <label className="field" htmlFor="sale-from"><span>受け取り（から）</span><input id="sale-from" type="time" step={900} value={saleFrom} onChange={e => setSaleFrom(e.target.value)} /></label>
+            <label className="field" htmlFor="sale-until"><span>受け取り（まで）</span><input id="sale-until" type="time" step={900} value={saleUntil} onChange={e => setSaleUntil(e.target.value)} /></label>
+          </div>
+          <p className="form-note">学生はアプリで予約と支払いをします。代金は MAKANAI がお店に代わって受け取り、学生が「受け取った」と報告したあと、お店の売上として振り込みます。お店で現金のやりとりはありません。「通常○円→半額」のような表示は使わず、まかない価格だけを出します。</p>
+        </MoreOptions>
       </>}
     </fieldset>
 
