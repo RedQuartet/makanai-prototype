@@ -1,13 +1,15 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowRight, Bell, CalendarDays, Check, ChevronDown, ChevronRight, Home, Leaf, Plus, ShoppingBag, Ticket, UserRound, UsersRound, UtensilsCrossed } from 'lucide-react'
-import { categories, demoUser, helpKinds, minimumWage, ownerMonthBase, ownerPastReviews, ownerStock, ownerStoreId, rolePresets, statusLabels, transportOptions } from './data'
+import { categories, demoUser, helpKinds, minimumWage, ownerMonthBase, ownerPastReviews, ownerStock, ownerStoreId, preparedDishPhotos, preparedPhotoFor, rolePresets, statusLabels, transportOptions } from './data'
 import { isBuy, useDemo } from './demo'
 import { dayLabel, durationLabel, endTime, feeOf, fromDateKey, jobWhen, kg, monthDay, rescuedPerPerson, saleWhen, wageOf, yen } from './format'
 import { Photo } from './ui'
 import type { ApplicationStatus, Category, HelpKind, MakanaiItem, Review, StockItem } from './types'
 
 function OwnerShell({ children }: { children: ReactNode }) {
+  // 用意してある料理の写真は、お店側の画面を開いた時点で先に読んでおく（掲載した瞬間に写真が出るように）
+  useEffect(() => { preparedDishPhotos.forEach(p => { new Image().src = p.image }) }, [])
   return <div className="app-shell owner-shell">
     <header className="app-header owner-header">
       <Link to="/owner" className="logo compact" aria-label="お店のホームへ"><span className="logo-mark"><UtensilsCrossed /></span><span>MAKANAI</span><small className="owner-badge">お店用</small></Link>
@@ -179,7 +181,7 @@ export function OwnerNewJob() {
     const names = chosen.map(x => x.name).join('・')
     const item: MakanaiItem = {
       ...store,
-      id: `custom-${Date.now()}`, dishName: name.trim(), category, fresh: true, dishImage: '',
+      id: `custom-${Date.now()}`, dishName: name.trim(), category, fresh: true, dishImage: preparedPhotoFor(name),
       shortDescription: `期限間近の${names}を使った、この日だけのまかない。`,
       description: `使い切れずに残りそうな${names}を、店主がまかないに仕立てます。お手伝いのあと、できたてをどうぞ。`,
       recommendation: ['期限間近の食材を使い切る一皿', 'お手伝いのあとに、できたてを提供', 'ご飯とお味噌汁つき'],

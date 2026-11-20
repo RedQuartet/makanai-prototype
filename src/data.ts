@@ -152,6 +152,17 @@ export function demoHistory(today = new Date()): Application[] {
 
 export const ownerStoreId = 'karaage-yamada'
 
+/** お店の画面でつくる求人のうち、写真を用意してある料理（デモ用）。料理名がすべての言葉を含めば、その写真を使う。
+ *  「豚バラとキャベツの味噌炒め定食」は、ひらがなの「みそ」や言い回しの違いでも合うようにしてある */
+export const preparedDishPhotos: { words: string[][]; image: string }[] = [
+  { words: [['キャベツ', 'きゃべつ'], ['味噌', 'みそ', 'ミソ'], ['炒め', 'いため']], image: 'https://d8j0ntlcm91z4.cloudfront.net/user_3KSScY2HeF874nps5TymxBz8Nyh/hf_20261120_051138_7c7d4f40-1b14-4291-8901-798780b69f0e.png' }
+]
+
+export function preparedPhotoFor(dishName: string) {
+  const name = dishName.replace(/\s/g, '')
+  return preparedDishPhotos.find(p => p.words.every(any => any.some(w => name.includes(w))))?.image ?? ''
+}
+
 export const ownerStock: StockItem[] = [
   { id: 'stock-pork', name: '豚バラ肉', kg: 0.9, daysLeft: 1 },
   { id: 'stock-tofu', name: '木綿豆腐', kg: 1.2, daysLeft: 1 },
