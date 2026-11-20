@@ -191,3 +191,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { 
 @media (min-width:1600px) { :root { --z:1.65; } }
 @media (min-width:1900px) { :root { --z:1.85; } }
 @media (min-width:2500px) { :root { --z:2.4; } }
+/* お店の求人フォームの「詳細」：ふだんは閉じて、いまの設定を 1 行で見せる */
+.more-options { border-top:1px dashed #eadccf; padding-top:12px; }.details-toggle { width:100%; display:flex; align-items:center; gap:10px; border:0; border-radius:13px; background:#fbf5ee; padding:11px 14px; color:var(--brown); font:inherit; text-align:left; cursor:pointer; }.details-toggle b { font-size:12px; font-weight:800; flex:none; }.details-toggle small { flex:1; min-width:0; font-size:11px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.details-toggle svg { width:16px; height:16px; flex:none; transition:transform .2s; }.details-toggle[aria-expanded="true"] svg { transform:rotate(180deg); }.more-body { display:grid; gap:12px; margin-top:12px; }
